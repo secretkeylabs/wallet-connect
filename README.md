@@ -25,4 +25,4 @@ Stacks Wallet Connect
     cd ..
 
     cd wallet
-    npm dev
+    yarn dev
