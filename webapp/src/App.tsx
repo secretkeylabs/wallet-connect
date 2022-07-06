@@ -12,6 +12,7 @@ import {
   DEFAULT_MAIN_CHAINS,
   DEFAULT_SOLANA_METHODS,
   DEFAULT_TEST_CHAINS,
+  DEFAULT_STACKS_METHODS,
 } from "./constants";
 import { AccountAction, setLocaleStorageTestnetFlag } from "./helpers";
 import Toggle from "./components/Toggle";
@@ -155,6 +156,21 @@ export default function App() {
     ];
   };
 
+  const getStacksActions = (): AccountAction[] => {
+    const onSignTransaction = async (chainId: string, address: string) => {
+      openRequestModal();
+      await stacksRpc.testSignTransaction(chainId, address);
+    };
+    const onSignMessage = async (chainId: string, address: string) => {
+      openRequestModal();
+      await stacksRpc.testSignMessage(chainId, address);
+    };
+    return [
+      { method: DEFAULT_STACKS_METHODS.STACKS_SIGN_TRANSACTION, callback: onSignTransaction },
+      { method: DEFAULT_STACKS_METHODS.STACKS_SIGN_MESSAGE, callback: onSignMessage },
+    ];
+  };
+
   const getBlockchainActions = (chainId: string) => {
     const [namespace] = chainId.split(":");
     switch (namespace) {
@@ -164,6 +180,8 @@ export default function App() {
         return getCosmosActions();
       case "solana":
         return getSolanaActions();
+      case "stacks":
+        return getStacksActions();
       default:
         break;
     }

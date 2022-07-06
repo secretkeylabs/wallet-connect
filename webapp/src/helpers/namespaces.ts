@@ -6,6 +6,8 @@ import {
   DEFAULT_EIP_155_EVENTS,
   DEFAULT_SOLANA_EVENTS,
   DEFAULT_SOLANA_METHODS,
+  DEFAULT_STACKS_EVENTS,
+  DEFAULT_STACKS_METHODS,
 } from "../constants";
 
 export const getNamespacesFromChains = (chains: string[]) => {
@@ -28,6 +30,8 @@ export const getSupportedMethodsByNamespace = (namespace: string) => {
       return Object.values(DEFAULT_COSMOS_METHODS);
     case "solana":
       return Object.values(DEFAULT_SOLANA_METHODS);
+    case "stacks":
+      return Object.values(DEFAULT_STACKS_METHODS);
     default:
       throw new Error(`No default methods for namespace: ${namespace}`);
   }
@@ -41,6 +45,8 @@ export const getSupportedEventsByNamespace = (namespace: string) => {
       return Object.values(DEFAULT_COSMOS_EVENTS);
     case "solana":
       return Object.values(DEFAULT_SOLANA_EVENTS);
+    case "stacks":
+      return Object.values(DEFAULT_STACKS_EVENTS);
     default:
       throw new Error(`No default events for namespace: ${namespace}`);
   }
