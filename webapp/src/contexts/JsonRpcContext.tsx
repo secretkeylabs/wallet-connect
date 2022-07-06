@@ -57,6 +57,10 @@ interface IContext {
     testSignMessage: TRpcRequestCallback;
     testSignTransaction: TRpcRequestCallback;
   };
+  stacksRpc: {
+    testSignMessage: TRpcRequestCallback;
+    testSignTransaction: TRpcRequestCallback;
+  };
   rpcResult?: IFormattedRpcResponse | null;
   isRpcRequestPending: boolean;
   isTestnet: boolean;
@@ -539,6 +543,21 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
     ),
   };
 
+  // -------- STACKS RPC METHODS --------
+
+  const stacksRpc = {
+    testSignTransaction: _createJsonRpcRequestHandler(
+      async (chainId: string, address: string): Promise<IFormattedRpcResponse> => {
+        return {} as IFormattedRpcResponse;
+      },
+    ),
+    testSignMessage: _createJsonRpcRequestHandler(
+      async (chainId: string, address: string): Promise<IFormattedRpcResponse> => {
+        return {} as IFormattedRpcResponse;
+      },
+    ),
+  };
+
   return (
     <JsonRpcContext.Provider
       value={{
@@ -546,6 +565,7 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
         ethereumRpc,
         cosmosRpc,
         solanaRpc,
+        stacksRpc,
         rpcResult: result,
         isRpcRequestPending: pending,
         isTestnet,

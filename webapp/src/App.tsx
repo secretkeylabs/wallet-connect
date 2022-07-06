@@ -62,6 +62,7 @@ export default function App() {
     ethereumRpc,
     cosmosRpc,
     solanaRpc,
+    stacksRpc,
     isRpcRequestPending,
     rpcResult,
     isTestnet,
