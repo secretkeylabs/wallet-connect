@@ -25,8 +25,15 @@ import {
   DEFAULT_COSMOS_METHODS,
   DEFAULT_EIP155_METHODS,
   DEFAULT_SOLANA_METHODS,
+  DEFAULT_STACKS_METHODS,
 } from "../constants";
 import { useChainData } from "./ChainDataContext";
+import { verifyMessageSignatureRsv } from "@stacks/encryption";
+
+import {
+  PostConditionMode,
+} from '@stacks/transactions'
+import BN from 'bn.js'
 
 /**
  * Types
@@ -59,7 +66,8 @@ interface IContext {
   };
   stacksRpc: {
     testSignMessage: TRpcRequestCallback;
-    testSignTransaction: TRpcRequestCallback;
+    testStxTransfer: TRpcRequestCallback;
+    testContractCall: TRpcRequestCallback;
   };
   rpcResult?: IFormattedRpcResponse | null;
   isRpcRequestPending: boolean;
@@ -542,18 +550,156 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
       },
     ),
   };
-
+  
   // -------- STACKS RPC METHODS --------
-
   const stacksRpc = {
-    testSignTransaction: _createJsonRpcRequestHandler(
+    testContractCall: _createJsonRpcRequestHandler(
       async (chainId: string, address: string): Promise<IFormattedRpcResponse> => {
-        return {} as IFormattedRpcResponse;
+        console.log("testContractCall", chainId, address, isTestnet);
+
+        const contract = 'ST24YYAWQ4DK4RKCKK1RP4PX0X5SCSXTWQXFGVCVY.fake-miamicoin-token-V2';
+        const contractPts = contract.split('.');
+        const contractAddress = contractPts[0];
+        const contractName = contractPts[1];
+        // const tokenName = 'miamicoin'; //XXX: It's hidden in the contract's code but it's not hard to find.
+
+        const orderAmount = new BN(13);
+        const addressTo = 'ST3Q85SVTW7J3XQ38V7V88653YN90728NMM46J2ZE';
+
+        // // Define post conditions
+        // const postConditions = [];
+        // postConditions.push(
+        //   makeStandardFungiblePostCondition(
+        //     address,
+        //     FungibleConditionCode.Equal,
+        //     orderAmount,
+        //     createAssetInfo(
+        //       contractAddress,
+        //       contractName,
+        //       tokenName
+        //     )
+        //   )
+        // );
+
+        try {
+          const result = await client!.request<{ txId: string }>({
+            chainId,
+            topic: session!.topic,
+            request: {
+              method: DEFAULT_STACKS_METHODS.STACKS_CONTRACT_CALL,
+              params: {
+                pubkey: address, //XXX: This one is required
+                // postConditions,
+                contractAddress: contractAddress,
+                contractName: contractName,
+                functionName: 'transfer',
+                functionArgs: [
+                  {
+                    type: 'uint',
+                    value: orderAmount.toString(),
+                  },
+                  {
+                    type: 'standardPrincipal',
+                    value: address
+                  },
+                  {
+                    type: 'standardPrincipal',
+                    value: addressTo
+                  },
+                  {
+                    type: 'none'
+                  },
+                ],
+                postConditionMode: PostConditionMode.Allow,
+                // postConditionMode: PostConditionMode.Deny,
+              },
+            },
+          });
+
+          console.log('result', result);
+
+          return {
+            method: DEFAULT_STACKS_METHODS.STACKS_CONTRACT_CALL,
+            address,
+            valid: true,
+            result: result.txId,
+          };
+        } catch (error: any) {
+          console.log('ERROR: ', error);
+          throw new Error(error);
+        }
+      },
+    ),
+    testStxTransfer: _createJsonRpcRequestHandler(
+      async (chainId: string, address: string): Promise<IFormattedRpcResponse> => {
+        console.log("testStxTransfer", chainId, address, isTestnet);
+
+        try {
+          const result = await client!.request<{ txId: string }>({
+            chainId,
+            topic: session!.topic,
+            request: {
+              method: DEFAULT_STACKS_METHODS.STACKS_STX_TRANSFER,
+              params: {
+                pubkey: address, //XXX: This one is required
+                recipient: 'ST3Q85SVTW7J3XQ38V7V88653YN90728NMM46J2ZE',
+                amount: 12,
+              },
+            },
+          });
+
+          console.log('result', result);
+
+          return {
+            method: DEFAULT_STACKS_METHODS.STACKS_STX_TRANSFER,
+            address,
+            valid: true,
+            result: result.txId,
+          };
+        } catch (error: any) {
+          console.log('ERROR: ', error);
+          throw new Error(error);
+        }
       },
     ),
     testSignMessage: _createJsonRpcRequestHandler(
       async (chainId: string, address: string): Promise<IFormattedRpcResponse> => {
-        return {} as IFormattedRpcResponse;
+        const message = 'bocian123';
+
+        try {
+          const result = await client!.request<{ signature: string }>({
+            chainId,
+            topic: session!.topic,
+            request: {
+              method: DEFAULT_STACKS_METHODS.STACKS_SIGN_MESSAGE,
+              params: {
+                pubkey: address, //XXX: This one is required
+                message,
+              },
+            },
+          });
+
+          // const call = { signature: result.signature, message, publicKey: address };
+          // console.log('Call: ', call);
+          // const verified = verifyMessageSignatureRsv(call);
+          // console.log('verified: ', verified);
+
+
+          // const valid = verifyMessageSignature(
+          //   senderPublicKey.toBase58(),
+          //   result.signature,
+          //   message,
+          // );
+
+          return {
+            method: DEFAULT_STACKS_METHODS.STACKS_SIGN_MESSAGE,
+            address,
+            valid: true,
+            result: result.signature,
+          };
+        } catch (error: any) {
+          throw new Error(error);
+        }
       },
     ),
   };

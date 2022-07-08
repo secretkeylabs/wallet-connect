@@ -158,16 +158,21 @@ export default function App() {
   };
 
   const getStacksActions = (): AccountAction[] => {
-    const onSignTransaction = async (chainId: string, address: string) => {
+    const onContractCall = async (chainId: string, address: string) => {
       openRequestModal();
-      await stacksRpc.testSignTransaction(chainId, address);
+      await stacksRpc.testContractCall(chainId, address);
+    };
+    const onStxTransfer = async (chainId: string, address: string) => {
+      openRequestModal();
+      await stacksRpc.testStxTransfer(chainId, address);
     };
     const onSignMessage = async (chainId: string, address: string) => {
       openRequestModal();
       await stacksRpc.testSignMessage(chainId, address);
     };
     return [
-      { method: DEFAULT_STACKS_METHODS.STACKS_SIGN_TRANSACTION, callback: onSignTransaction },
+      { method: DEFAULT_STACKS_METHODS.STACKS_CONTRACT_CALL, callback: onContractCall },
+      { method: DEFAULT_STACKS_METHODS.STACKS_STX_TRANSFER, callback: onStxTransfer },
       { method: DEFAULT_STACKS_METHODS.STACKS_SIGN_MESSAGE, callback: onSignMessage },
     ];
   };

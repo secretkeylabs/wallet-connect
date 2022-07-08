@@ -77,7 +77,8 @@ export enum DEFAULT_SOLANA_EVENTS {}
  * STACKS
  */
 export enum DEFAULT_STACKS_METHODS {
-  STACKS_SIGN_TRANSACTION = "stacks_signTransaction",
+  STACKS_STX_TRANSFER = "stacks_stxTransfer",
+  STACKS_CONTRACT_CALL = "stacks_contractCall",
   STACKS_SIGN_MESSAGE = "stacks_signMessage",
 }
 
