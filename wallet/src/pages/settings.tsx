@@ -3,13 +3,14 @@ import SettingsStore from '@/store/SettingsStore'
 import { cosmosWallets } from '@/utils/CosmosWalletUtil'
 import { eip155Wallets } from '@/utils/EIP155WalletUtil'
 import { solanaWallets } from '@/utils/SolanaWalletUtil'
+import { stacksWallets } from '@/utils/StacksWalletUtil'
 import { Card, Divider, Row, Switch, Text } from '@nextui-org/react'
 import { Fragment } from 'react'
 import { useSnapshot } from 'valtio'
 import packageJSON from '../../package.json'
 
 export default function SettingsPage() {
-  const { testNets, eip155Address, cosmosAddress, solanaAddress } = useSnapshot(SettingsStore.state)
+  const { testNets, eip155Address, cosmosAddress, solanaAddress, stacksAddress } = useSnapshot(SettingsStore.state)
 
   return (
     <Fragment>
@@ -67,6 +68,13 @@ export default function SettingsPage() {
       </Text>
       <Card bordered borderWeight="light" css={{ minHeight: '215px', wordWrap: 'break-word' }}>
         <Text css={{ fontFamily: '$mono' }}>{solanaWallets[solanaAddress].getSecretKey()}</Text>
+      </Card>
+
+      <Text h4 css={{ marginTop: '$10', marginBottom: '$5' }}>
+        Stacks Secret Key
+      </Text>
+      <Card bordered borderWeight="light" css={{ minHeight: '215px', wordWrap: 'break-word' }}>
+        <Text css={{ fontFamily: '$mono' }}>{stacksWallets[stacksAddress].getSecretKey()}</Text>
       </Card>
     </Fragment>
   )
