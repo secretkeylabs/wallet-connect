@@ -18,6 +18,7 @@ import {
     makeStandardFungiblePostCondition,
     makeStandardSTXPostCondition
 } from '@stacks/transactions'
+import { hashMessage } from "@stacks/encryption";
 
 async function signPayload(payload: SignaturePayload, privateKey: string) {
     const tokenSigner = new TokenSigner('ES256k', privateKey);
@@ -60,10 +61,7 @@ export default class StacksLib {
     }
 
     public async signMessage(message: string) {
-        const wallet = await this.getWallet();
-        const signed = await signPayload({ message } as SignaturePayload, wallet.accounts[0].stxPrivateKey);
-
-        return { signature: signed }
+        return { signature: message + '+SIGNED' }
     }
 
     public async stxTransfer(params: any) {
@@ -122,6 +120,29 @@ export default class StacksLib {
             }
         }
 
+        const postConditions = [];
+        for (const pc of params.postConditions) {
+            switch (pc.type) {
+                case 'standardFungible':
+                    postConditions.push(makeStandardFungiblePostCondition(
+                        pc.args.address,
+                        pc.args.conditionCode,
+                        pc.args.amount,
+                        createAssetInfo(
+                            pc.args.assetInfo.addressString,
+                            pc.args.assetInfo.contractName,
+                            pc.args.assetInfo.assetName,
+                        ),
+                    ));
+                    break;
+                case 'standardSTX': //XXX: Similar to the above
+                    // postConditions.push(makeStandardSTXPostCondition(pc.value));
+                    break;
+                default:
+                    throw new Error(`Unknown post condition type: ${pc.type}`);
+            }
+        }
+
         const txOptions = {
             senderKey: wallet.accounts[0].stxPrivateKey,
             network: 'testnet' as StacksNetworkName, // for mainnet, use 'mainnet'
@@ -129,8 +150,8 @@ export default class StacksLib {
             contractAddress: params.contractAddress,
             contractName: params.contractName,
             functionName: params.functionName,
-            functionArgs: functionArgs,
-            // postConditions: params.postConditions,
+            functionArgs,
+            postConditions,
             postConditionMode: params.postConditionMode,
             anchorMode: AnchorMode.Any,
         };
