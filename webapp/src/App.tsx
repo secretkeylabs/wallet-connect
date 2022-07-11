@@ -160,15 +160,15 @@ export default function App() {
   const getStacksActions = (): AccountAction[] => {
     const onContractCall = async (chainId: string, address: string) => {
       openRequestModal();
-      await stacksRpc.testContractCall(chainId, address);
+      await stacksRpc.exampleContractCall(chainId, address);
     };
     const onStxTransfer = async (chainId: string, address: string) => {
       openRequestModal();
-      await stacksRpc.testStxTransfer(chainId, address);
+      await stacksRpc.exampleStxTransfer(chainId, address);
     };
     const onSignMessage = async (chainId: string, address: string) => {
       openRequestModal();
-      await stacksRpc.testSignMessage(chainId, address);
+      await stacksRpc.exampleSignMessage(chainId, address);
     };
     return [
       { method: DEFAULT_STACKS_METHODS.STACKS_CONTRACT_CALL, callback: onContractCall },

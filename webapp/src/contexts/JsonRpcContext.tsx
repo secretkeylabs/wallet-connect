@@ -28,10 +28,12 @@ import {
   DEFAULT_STACKS_METHODS,
 } from "../constants";
 import { useChainData } from "./ChainDataContext";
-import { verifyMessageSignatureRsv } from "@stacks/encryption";
 
 import {
   PostConditionMode,
+  FungibleConditionCode,
+  // makeStandardFungiblePostCondition,
+  // createAssetInfo,
 } from '@stacks/transactions'
 import BN from 'bn.js'
 
@@ -65,9 +67,9 @@ interface IContext {
     testSignTransaction: TRpcRequestCallback;
   };
   stacksRpc: {
-    testSignMessage: TRpcRequestCallback;
-    testStxTransfer: TRpcRequestCallback;
-    testContractCall: TRpcRequestCallback;
+    exampleSignMessage: TRpcRequestCallback;
+    exampleStxTransfer: TRpcRequestCallback;
+    exampleContractCall: TRpcRequestCallback;
   };
   rpcResult?: IFormattedRpcResponse | null;
   isRpcRequestPending: boolean;
@@ -553,33 +555,49 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
   
   // -------- STACKS RPC METHODS --------
   const stacksRpc = {
-    testContractCall: _createJsonRpcRequestHandler(
+    exampleContractCall: _createJsonRpcRequestHandler(
       async (chainId: string, address: string): Promise<IFormattedRpcResponse> => {
-        console.log("testContractCall", chainId, address, isTestnet);
+        console.log("exampleContractCall", chainId, address, isTestnet);
 
         const contract = 'ST24YYAWQ4DK4RKCKK1RP4PX0X5SCSXTWQXFGVCVY.fake-miamicoin-token-V2';
         const contractPts = contract.split('.');
         const contractAddress = contractPts[0];
         const contractName = contractPts[1];
-        // const tokenName = 'miamicoin'; //XXX: It's hidden in the contract's code but it's not hard to find.
+        const tokenName = 'miamicoin'; //XXX: It's hidden in the contract's code but it's not hard to find.
 
-        const orderAmount = new BN(13);
+        const orderAmount = new BN(13).mul(new BN(10 ** 6));
         const addressTo = 'ST3Q85SVTW7J3XQ38V7V88653YN90728NMM46J2ZE';
 
-        // // Define post conditions
-        // const postConditions = [];
-        // postConditions.push(
-        //   makeStandardFungiblePostCondition(
-        //     address,
-        //     FungibleConditionCode.Equal,
-        //     orderAmount,
-        //     createAssetInfo(
-        //       contractAddress,
-        //       contractName,
-        //       tokenName
-        //     )
-        //   )
-        // );
+        // Define post conditions
+        const postConditions = [];
+        postConditions.push(
+          //Use this format, because it'll be JSON.stringified before sending and JSON.stringify has hard time encoding bigints that are used internall by @stacks/* types
+          {
+            type: 'standardFungible',
+            args: {
+              address,
+              conditionCode: FungibleConditionCode.Equal,
+              amount: orderAmount.toString(),
+              assetInfo: {
+                addressString: contractAddress,
+                contractName: contractName,
+                assetName: tokenName,
+              }
+            }
+          }
+          //The original format is:
+          //
+          // makeStandardFungiblePostCondition(
+          //   address,
+          //   FungibleConditionCode.Equal,
+          //   orderAmount,
+          //   createAssetInfo(
+          //     contractAddress,
+          //     contractName,
+          //     tokenName
+          //   )
+          // )
+        );
 
         try {
           const result = await client!.request<{ txId: string }>({
@@ -589,7 +607,7 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
               method: DEFAULT_STACKS_METHODS.STACKS_CONTRACT_CALL,
               params: {
                 pubkey: address, //XXX: This one is required
-                // postConditions,
+                postConditions,
                 contractAddress: contractAddress,
                 contractName: contractName,
                 functionName: 'transfer',
@@ -610,8 +628,8 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
                     type: 'none'
                   },
                 ],
-                postConditionMode: PostConditionMode.Allow,
-                // postConditionMode: PostConditionMode.Deny,
+                // postConditionMode: PostConditionMode.Allow,
+                postConditionMode: PostConditionMode.Deny,
               },
             },
           });
@@ -630,9 +648,9 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
         }
       },
     ),
-    testStxTransfer: _createJsonRpcRequestHandler(
+    exampleStxTransfer: _createJsonRpcRequestHandler(
       async (chainId: string, address: string): Promise<IFormattedRpcResponse> => {
-        console.log("testStxTransfer", chainId, address, isTestnet);
+        console.log("exampleStxTransfer", chainId, address, isTestnet);
 
         try {
           const result = await client!.request<{ txId: string }>({
@@ -662,9 +680,9 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
         }
       },
     ),
-    testSignMessage: _createJsonRpcRequestHandler(
+    exampleSignMessage: _createJsonRpcRequestHandler(
       async (chainId: string, address: string): Promise<IFormattedRpcResponse> => {
-        const message = 'bocian123';
+        const message = 'loremipsum';
 
         try {
           const result = await client!.request<{ signature: string }>({
@@ -679,22 +697,13 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
             },
           });
 
-          // const call = { signature: result.signature, message, publicKey: address };
-          // console.log('Call: ', call);
-          // const verified = verifyMessageSignatureRsv(call);
-          // console.log('verified: ', verified);
-
-
-          // const valid = verifyMessageSignature(
-          //   senderPublicKey.toBase58(),
-          //   result.signature,
-          //   message,
-          // );
+          //dummy check of signature
+          const valid = result.signature === message + '+SIGNED';
 
           return {
             method: DEFAULT_STACKS_METHODS.STACKS_SIGN_MESSAGE,
             address,
-            valid: true,
+            valid,
             result: result.signature,
           };
         } catch (error: any) {
