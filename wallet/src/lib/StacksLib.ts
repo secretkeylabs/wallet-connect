@@ -1,32 +1,9 @@
-import { TokenSigner } from 'jsontokens';
-import { SignaturePayload } from '@stacks/connect';
 import { generateWallet, Wallet } from "@stacks/wallet-sdk";
 import { makeSTXTokenTransfer, makeContractCall, broadcastTransaction, AnchorMode } from '@stacks/transactions';
 import { StacksNetworkName } from '@stacks/network';
 import { BigNumber } from 'bignumber.js';
 
-import {
-    bufferCV,
-    bufferCVFromString,
-    noneCV,
-    uintCV,
-    stringAsciiCV,
-    standardPrincipalCV,
-    PostConditionMode,
-    createAssetInfo,
-    FungibleConditionCode,
-    makeStandardFungiblePostCondition,
-    makeStandardSTXPostCondition
-} from '@stacks/transactions'
-import { hashMessage } from "@stacks/encryption";
-
-async function signPayload(payload: SignaturePayload, privateKey: string) {
-    const tokenSigner = new TokenSigner('ES256k', privateKey);
-
-    return tokenSigner.signAsync({
-        ...payload,
-    } as any);
-}
+import { toRealCV, toRealPostCondition } from "@web3devs/stacks-wallet-connect";
 
 /**
  * Types
@@ -89,7 +66,6 @@ export default class StacksLib {
     }
 
     public async contractCall(params: any) {
-        console.log('contractCall: ', params);
         const wallet = await generateWallet({
             secretKey: this.getSecretKey(),
             password: '',
@@ -97,50 +73,12 @@ export default class StacksLib {
 
         const functionArgs = [];
         for (const arg of params.functionArgs) {
-            switch (arg.type) {
-                case 'uint':
-                    functionArgs.push(uintCV(arg.value));
-                    break;
-                case 'buffer':
-                    functionArgs.push(bufferCVFromString(arg.value));
-                    break;
-                case 'buffer34':
-                    const b = Buffer.alloc(34);
-                    b.write(arg.value, 0, 34, 'hex');
-                    functionArgs.push(bufferCV(b));
-                    break;
-                case 'none':
-                    functionArgs.push(noneCV());
-                    break;
-                case 'standardPrincipal':
-                    functionArgs.push(standardPrincipalCV(arg.value));
-                    break;
-                default:
-                    throw new Error(`Unknown argument type: ${arg.type}`);
-            }
+            functionArgs.push(toRealCV(arg));
         }
 
         const postConditions = [];
         for (const pc of params.postConditions) {
-            switch (pc.type) {
-                case 'standardFungible':
-                    postConditions.push(makeStandardFungiblePostCondition(
-                        pc.args.address,
-                        pc.args.conditionCode,
-                        pc.args.amount,
-                        createAssetInfo(
-                            pc.args.assetInfo.addressString,
-                            pc.args.assetInfo.contractName,
-                            pc.args.assetInfo.assetName,
-                        ),
-                    ));
-                    break;
-                case 'standardSTX': //XXX: Similar to the above
-                    // postConditions.push(makeStandardSTXPostCondition(pc.value));
-                    break;
-                default:
-                    throw new Error(`Unknown post condition type: ${pc.type}`);
-            }
+            postConditions.push(toRealPostCondition(pc));
         }
 
         const txOptions = {
