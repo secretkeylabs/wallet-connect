@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 import { AssetData, GasPrices, ParsedTx } from "./types";
+import { STACKS_MAINNET_CHAIN_ID_PREFIXED, STACKS_TESTNET_CHAIN_ID_PREFIXED } from "@web3devs/stacks-wallet-connect"
 
 const ethereumApi: AxiosInstance = axios.create({
   baseURL: "https://ethereum-api.xyz",
@@ -13,26 +14,6 @@ const ethereumApi: AxiosInstance = axios.create({
 //XXX: Not being used?
 export async function apiGetAccountAssets(address: string, chainId: string): Promise<AssetData[]> {
   const ethChainId = chainId.split(":")[1];
-  if (ethChainId === '2019' || ethChainId === '2020') {
-    const response = await ethereumApi.get(
-      `https://stacks-node-api.testnet.stacks.co/extended/v1/address/${address}/balances`
-    );
-    const result = response.data;
-    const assets: AssetData[] = [];
-    for (const asset in result.fungible_tokens) {
-      console.log('asset', asset);
-    }
-
-    return assets;
-
-    // return {
-    //   symbol: 'STX',
-    //   name: 'Stacks',
-    //   decimals: '6',
-    //   contractAddress: 'STX',
-    //   balance: result.stx.balance,
-    // }
-  }
   const response = await ethereumApi.get(
     `/account-assets?address=${address}&chainId=${ethChainId}`,
   );
@@ -42,7 +23,8 @@ export async function apiGetAccountAssets(address: string, chainId: string): Pro
 
 export async function apiGetAccountBalance(address: string, chainId: string): Promise<AssetData> {
   const ethChainId = chainId.split(":")[1];
-  if (ethChainId === '2019' || ethChainId === '2020') {
+  if (chainId === STACKS_MAINNET_CHAIN_ID_PREFIXED || chainId === STACKS_TESTNET_CHAIN_ID_PREFIXED) {
+    //TODO: move to helper function?
     const response = await ethereumApi.get(
       `https://stacks-node-api.testnet.stacks.co/extended/v1/address/${address}/balances`
     );

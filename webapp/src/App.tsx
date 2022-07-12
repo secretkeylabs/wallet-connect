@@ -12,7 +12,6 @@ import {
   DEFAULT_MAIN_CHAINS,
   DEFAULT_SOLANA_METHODS,
   DEFAULT_TEST_CHAINS,
-  DEFAULT_STACKS_METHODS,
 } from "./constants";
 import { AccountAction, setLocaleStorageTestnetFlag } from "./helpers";
 import Toggle from "./components/Toggle";
@@ -32,6 +31,8 @@ import {
 import { useWalletConnectClient } from "./contexts/ClientContext";
 import { useJsonRpc } from "./contexts/JsonRpcContext";
 import { useChainData } from "./contexts/ChainDataContext";
+
+import { STACKS_DEFAULT_METHODS } from "@web3devs/stacks-wallet-connect"
 
 export default function App() {
   const [modal, setModal] = useState("");
@@ -171,9 +172,9 @@ export default function App() {
       await stacksRpc.exampleSignMessage(chainId, address);
     };
     return [
-      { method: DEFAULT_STACKS_METHODS.STACKS_CONTRACT_CALL, callback: onContractCall },
-      { method: DEFAULT_STACKS_METHODS.STACKS_STX_TRANSFER, callback: onStxTransfer },
-      { method: DEFAULT_STACKS_METHODS.STACKS_SIGN_MESSAGE, callback: onSignMessage },
+      { method: STACKS_DEFAULT_METHODS.CONTRACT_CALL, callback: onContractCall },
+      { method: STACKS_DEFAULT_METHODS.STX_TRANSFER, callback: onStxTransfer },
+      { method: STACKS_DEFAULT_METHODS.SIGN_MESSAGE, callback: onSignMessage },
     ];
   };
 

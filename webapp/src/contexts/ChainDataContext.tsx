@@ -1,9 +1,9 @@
 import { apiGetChainNamespace, ChainsMap } from "caip-api";
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { SolanaChainData } from "../chains/solana";
-import { StacksChainData } from "../chains/stacks";
-
 import { ChainNamespaces, getAllChainNamespaces } from "../helpers";
+
+import { StacksChainData } from "@web3devs/stacks-wallet-connect"
 
 /**
  * Types

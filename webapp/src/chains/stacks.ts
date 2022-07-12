@@ -1,31 +1,12 @@
-import { ChainsMap } from "caip-api";
 import { NamespaceMetadata, ChainMetadata } from "../helpers";
-
-export const StacksChainData: ChainsMap = {
-  "2020": {
-    id: "stacks:2020",
-    name: "Stacks Mainnet",
-    rpc: ["https://stacks-node-api.stacks.co"],
-    slip44: 5757,
-    testnet: false,
-  },
-  "2019": {
-    id: "stacks:2019",
-    name: "Stacks Testnet",
-    rpc: ["https://stacks-node-api.testnet.stacks.co"],
-    slip44: 5757,
-    testnet: true,
-  },
-};
+import { STACKS_MAINNET_CHAIN_ID, STACKS_TESTNET_CHAIN_ID } from "@web3devs/stacks-wallet-connect"
 
 export const StacksMetadata: NamespaceMetadata = {
-  // Stacks Mainnet
-  "2020": {
+  [STACKS_MAINNET_CHAIN_ID]: {
     logo: "/stacks_logo.jpg",
     rgb: "0, 0, 0",
   },
-  // Stacks Testnet
-  "2019": {
+  [STACKS_TESTNET_CHAIN_ID]: {
     logo: "/stacks_logo.jpg",
     rgb: "0, 0, 0",
   },

@@ -1,3 +1,5 @@
+import { STACKS_MAINNET_CHAIN_ID_PREFIXED, STACKS_TESTNET_CHAIN_ID_PREFIXED } from "@web3devs/stacks-wallet-connect"
+
 export const DEFAULT_MAIN_CHAINS = [
   // mainnets
   "eip155:1",
@@ -8,7 +10,7 @@ export const DEFAULT_MAIN_CHAINS = [
   "eip155:42220",
   "cosmos:cosmoshub-4",
   "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ",
-  "stacks:2020",
+  STACKS_MAINNET_CHAIN_ID_PREFIXED,
 ];
 
 export const DEFAULT_TEST_CHAINS = [
@@ -19,7 +21,7 @@ export const DEFAULT_TEST_CHAINS = [
   "eip155:421611",
   "eip155:44787",
   "solana:8E9rvCKLFQia2Y35HXjjpWzj8weVo44K",
-  "stacks:2019",
+  STACKS_TESTNET_CHAIN_ID_PREFIXED,
 ];
 
 export const DEFAULT_CHAINS = [...DEFAULT_MAIN_CHAINS, ...DEFAULT_TEST_CHAINS];
@@ -72,14 +74,3 @@ export enum DEFAULT_SOLANA_METHODS {
 }
 
 export enum DEFAULT_SOLANA_EVENTS {}
-
-/**
- * STACKS
- */
-export enum DEFAULT_STACKS_METHODS {
-  STACKS_STX_TRANSFER = "stacks_stxTransfer",
-  STACKS_CONTRACT_CALL = "stacks_contractCall",
-  STACKS_SIGN_MESSAGE = "stacks_signMessage",
-}
-
-export enum DEFAULT_STACKS_EVENTS { }

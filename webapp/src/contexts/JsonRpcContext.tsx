@@ -25,17 +25,23 @@ import {
   DEFAULT_COSMOS_METHODS,
   DEFAULT_EIP155_METHODS,
   DEFAULT_SOLANA_METHODS,
-  DEFAULT_STACKS_METHODS,
 } from "../constants";
 import { useChainData } from "./ChainDataContext";
 
 import {
   PostConditionMode,
   FungibleConditionCode,
-  // makeStandardFungiblePostCondition,
-  // createAssetInfo,
 } from '@stacks/transactions'
 import BN from 'bn.js'
+
+import {
+  makeStandardFungiblePostCondition,
+  createAssetInfo,
+  uintCV,
+  standardPrincipalCV,
+  noneCV,
+  STACKS_DEFAULT_METHODS
+} from "@web3devs/stacks-wallet-connect";
 
 /**
  * Types
@@ -571,32 +577,16 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
         // Define post conditions
         const postConditions = [];
         postConditions.push(
-          //Use this format, because it'll be JSON.stringified before sending and JSON.stringify has hard time encoding bigints that are used internall by @stacks/* types
-          {
-            type: 'standardFungible',
-            args: {
-              address,
-              conditionCode: FungibleConditionCode.Equal,
-              amount: orderAmount.toString(),
-              assetInfo: {
-                addressString: contractAddress,
-                contractName: contractName,
-                assetName: tokenName,
-              }
-            }
-          }
-          //The original format is:
-          //
-          // makeStandardFungiblePostCondition(
-          //   address,
-          //   FungibleConditionCode.Equal,
-          //   orderAmount,
-          //   createAssetInfo(
-          //     contractAddress,
-          //     contractName,
-          //     tokenName
-          //   )
-          // )
+          makeStandardFungiblePostCondition(
+            address,
+            FungibleConditionCode.Equal,
+            orderAmount.toString(),
+            createAssetInfo(
+              contractAddress,
+              contractName,
+              tokenName
+            )
+          )
         );
 
         try {
@@ -604,7 +594,7 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
             chainId,
             topic: session!.topic,
             request: {
-              method: DEFAULT_STACKS_METHODS.STACKS_CONTRACT_CALL,
+              method: STACKS_DEFAULT_METHODS.CONTRACT_CALL,
               params: {
                 pubkey: address, //XXX: This one is required
                 postConditions,
@@ -612,21 +602,10 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
                 contractName: contractName,
                 functionName: 'transfer',
                 functionArgs: [
-                  {
-                    type: 'uint',
-                    value: orderAmount.toString(),
-                  },
-                  {
-                    type: 'standardPrincipal',
-                    value: address
-                  },
-                  {
-                    type: 'standardPrincipal',
-                    value: addressTo
-                  },
-                  {
-                    type: 'none'
-                  },
+                  uintCV(orderAmount.toString()),
+                  standardPrincipalCV(address),
+                  standardPrincipalCV(addressTo),
+                  noneCV(),
                 ],
                 // postConditionMode: PostConditionMode.Allow,
                 postConditionMode: PostConditionMode.Deny,
@@ -637,7 +616,7 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
           console.log('result', result);
 
           return {
-            method: DEFAULT_STACKS_METHODS.STACKS_CONTRACT_CALL,
+            method: STACKS_DEFAULT_METHODS.CONTRACT_CALL,
             address,
             valid: true,
             result: result.txId,
@@ -657,7 +636,7 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
             chainId,
             topic: session!.topic,
             request: {
-              method: DEFAULT_STACKS_METHODS.STACKS_STX_TRANSFER,
+              method: STACKS_DEFAULT_METHODS.STX_TRANSFER,
               params: {
                 pubkey: address, //XXX: This one is required
                 recipient: 'ST3Q85SVTW7J3XQ38V7V88653YN90728NMM46J2ZE',
@@ -669,7 +648,7 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
           console.log('result', result);
 
           return {
-            method: DEFAULT_STACKS_METHODS.STACKS_STX_TRANSFER,
+            method: STACKS_DEFAULT_METHODS.STX_TRANSFER,
             address,
             valid: true,
             result: result.txId,
@@ -689,7 +668,7 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
             chainId,
             topic: session!.topic,
             request: {
-              method: DEFAULT_STACKS_METHODS.STACKS_SIGN_MESSAGE,
+              method: STACKS_DEFAULT_METHODS.SIGN_MESSAGE,
               params: {
                 pubkey: address, //XXX: This one is required
                 message,
@@ -701,7 +680,7 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
           const valid = result.signature === message + '+SIGNED';
 
           return {
-            method: DEFAULT_STACKS_METHODS.STACKS_SIGN_MESSAGE,
+            method: STACKS_DEFAULT_METHODS.SIGN_MESSAGE,
             address,
             valid,
             result: result.signature,

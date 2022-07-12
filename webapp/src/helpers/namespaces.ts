@@ -6,9 +6,9 @@ import {
   DEFAULT_EIP_155_EVENTS,
   DEFAULT_SOLANA_EVENTS,
   DEFAULT_SOLANA_METHODS,
-  DEFAULT_STACKS_EVENTS,
-  DEFAULT_STACKS_METHODS,
 } from "../constants";
+
+import { STACKS_DEFAULT_METHODS, STACKS_DEFAULT_EVENTS } from "@web3devs/stacks-wallet-connect"
 
 export const getNamespacesFromChains = (chains: string[]) => {
   const supportedNamespaces: string[] = [];
@@ -31,7 +31,7 @@ export const getSupportedMethodsByNamespace = (namespace: string) => {
     case "solana":
       return Object.values(DEFAULT_SOLANA_METHODS);
     case "stacks":
-      return Object.values(DEFAULT_STACKS_METHODS);
+      return Object.values(STACKS_DEFAULT_METHODS);
     default:
       throw new Error(`No default methods for namespace: ${namespace}`);
   }
@@ -46,7 +46,7 @@ export const getSupportedEventsByNamespace = (namespace: string) => {
     case "solana":
       return Object.values(DEFAULT_SOLANA_EVENTS);
     case "stacks":
-      return Object.values(DEFAULT_STACKS_EVENTS);
+      return Object.values(STACKS_DEFAULT_EVENTS);
     default:
       throw new Error(`No default events for namespace: ${namespace}`);
   }
