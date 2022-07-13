@@ -712,6 +712,7 @@ First of all we need to import Stacks libraries, second - configure a dummy acco
             </NextModal>
         )
 
+    That's it, your wallet should be operational now!
 
 ## WebApp
 
