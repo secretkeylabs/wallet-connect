@@ -82,6 +82,8 @@ We'll cover the **WebApp** part first and then move on to how to implement Walle
 
 First you need Stacks wallet that implements Wallet Connect. If you have one - go to [WebApp](#webapp) section.
 
+If you don't have one and don't want to implement one - just pick the one we have in this repo and skip to [WebApp](#webapp) section.
+
 ### 1. Setup
 
 1. Install dependencies
@@ -268,8 +270,34 @@ First of all we need to import Stacks libraries, second - configure a dummy acco
 
         export const STACKS_CHAINS = { ...STACKS_MAINNET_CHAINS, ...STACKS_TEST_CHAINS }
 
+3. Update helper file `src/utils/HelperUtil.ts`:
 
-3. Create utils lib `src/utils/StacksWalletUtil.ts`:
+        ...
+
+        import { STACKS_CHAINS, TStacksChain } from '@/data/StacksData'
+
+        ...
+
+        /**
+         * Check if chain is part of STACKS standard
+         */
+        export function isStacksChain(chain: string) {
+            return chain.includes('stacks')
+        }
+
+        ...
+
+        export function formatChainName(chainId: string) {
+            return (
+                EIP155_CHAINS[chainId as TEIP155Chain]?.name ??
+                COSMOS_MAINNET_CHAINS[chainId as TCosmosChain]?.name ??
+                SOLANA_CHAINS[chainId as TSolanaChain]?.name ??
+                STACKS_CHAINS[chainId as TStacksChain]?.name ?? // <== HERE
+                chainId
+            )
+        }
+
+4. Create utils lib `src/utils/StacksWalletUtil.ts`:
 
         import StacksLib from '@/lib/StacksLib'
 
@@ -323,18 +351,73 @@ First of all we need to import Stacks libraries, second - configure a dummy acco
             }
         }
 
-4. Create request handler util: `src/utils/StacksRequestHandlerUtil.ts`
+5. Update Settings Store `src/store/SettingsStore.ts`:
+
+        ...
+        interface State {
+            ...
+            stacksAddress: string
+        }
+
+        ...
+        const state = proxy<State>({
+            ...
+            stacksAddress: ''
+        })
+
+        ...
+        const SettingsStore = {
+            ...
+            setStacksAddress(stacksAddress: string) {
+                state.stacksAddress = stacksAddress
+            },
+        ...
+
+
+6. Update initialization `src/hooks/useInitialization.ts`:
+
+        ...
+
+        import { createOrRestoreStacksWallet } from '@/utils/StacksWalletUtil'
+
+        ...
+
+        const onInitialize = useCallback(async () => {
+            try {
+                const { eip155Addresses } = createOrRestoreEIP155Wallet()
+                const { cosmosAddresses } = await createOrRestoreCosmosWallet()
+                const { solanaAddresses } = await createOrRestoreSolanaWallet()
+                const { stacksAddresses } = await createOrRestoreStacksWallet() // <=== HERE
+
+                SettingsStore.setEIP155Address(eip155Addresses[0])
+                SettingsStore.setCosmosAddress(cosmosAddresses[0])
+                SettingsStore.setSolanaAddress(solanaAddresses[0])
+                SettingsStore.setStacksAddress(stacksAddresses[0]) // <=== AND HERE
+
+                await createSignClient()
+
+                setInitialized(true)
+            } catch (err: unknown) {
+                alert(err)
+            }
+        }, [])
+
+
+7. Create request handler util: `src/utils/StacksRequestHandlerUtil.ts`
 
     This file describes and integrates our Wallet API.
 
-    > **NOTE** the import of `STACKS_SIGNING_METHODS` - we'll use it later in the WebApp integration!
+    > **NOTE** the import of `STACKS_DEFAULT_METHODS` - we'll use it later in the WebApp integration!
 
-        import { STACKS_SIGNING_METHODS } from '@/data/StacksData'
         import { getWalletAddressFromParams } from '@/utils/HelperUtil'
         import { stacksAddresses, stacksWallets } from '@/utils/StacksWalletUtil'
         import { formatJsonRpcError, formatJsonRpcResult } from '@json-rpc-tools/utils'
         import { SignClientTypes } from '@walletconnect/types'
         import { ERROR } from '@walletconnect/utils'
+
+        import {
+            STACKS_DEFAULT_METHODS
+        } from "@web3devs/stacks-wallet-connect";
 
         export async function approveStacksRequest(
             requestEvent: SignClientTypes.EventArguments['session_request']
@@ -344,16 +427,16 @@ First of all we need to import Stacks libraries, second - configure a dummy acco
             const wallet = stacksWallets[getWalletAddressFromParams(stacksAddresses, params)]
 
             switch (request.method) {
-                case STACKS_SIGNING_METHODS.STACKS_SIGN_MESSAGE:
+                case STACKS_DEFAULT_METHODS.SIGN_MESSAGE:
                 const signedMessage = await wallet.signMessage(request.params.message)
                 return formatJsonRpcResult(id, signedMessage)
 
-                case STACKS_SIGNING_METHODS.STACKS_STX_TRANSFER:
+                case STACKS_DEFAULT_METHODS.STX_TRANSFER:
                 const stxTransferTxn = await wallet.stxTransfer(request.params)
 
                 return formatJsonRpcResult(id, stxTransferTxn)
 
-                case STACKS_SIGNING_METHODS.STACKS_CONTRACT_CALL:
+                case STACKS_DEFAULT_METHODS.CONTRACT_CALL:
                 const contractCallTxn = await wallet.contractCall(request.params)
 
                 return formatJsonRpcResult(id, contractCallTxn)
@@ -369,6 +452,265 @@ First of all we need to import Stacks libraries, second - configure a dummy acco
             return formatJsonRpcError(id, ERROR.JSONRPC_REQUEST_METHOD_REJECTED.format().message)
         }
 
+8. Add Stacks to the list of chains in `src/pages/index.tsx`:
+
+        ...
+
+        import { STACKS_MAINNET_CHAINS, STACKS_TEST_CHAINS } from '@/data/StacksData'
+
+        ...
+
+        export default function HomePage() {
+            const {
+                testNets,
+                eip155Address,
+                cosmosAddress,
+                solanaAddress,
+                stacksAddress // <== HERE
+            } = useSnapshot(SettingsStore.state)
+        ...
+
+        <Text h4 css={{ marginBottom: '$5' }}>
+            Mainnets
+        </Text>
+
+        ...
+
+        {Object.values(STACKS_MAINNET_CHAINS).map(({ name, logo, rgb }) => (
+            <AccountCard key={name} name={name} logo={logo} rgb={rgb} address={stacksAddress} />
+        ))}
+
+        ...
+
+        <Text h4 css={{ marginBottom: '$5' }}>
+            Testnets
+        </Text>
+
+        ...
+
+        {Object.values(STACKS_TEST_CHAINS).map(({ name, logo, rgb }) => (
+            <AccountCard key={name} name={name} logo={logo} rgb={rgb} address={stacksAddress} />
+        ))}
+
+        ...
+
+
+    At this point you should see Stacks on the accounts list. If you have Stacks Wallet WebApp - you should be able to scan the QR code and see the connection confirmation window.
+
+    The window doesn't work yet - we'll fix it now!
+
+9. Add StacksData to `src/components/SessionProposalChainCard.tsx`:
+
+        ...
+
+        import { STACKS_MAINNET_CHAINS, STACKS_TEST_CHAINS } from '@/data/StacksData'
+
+        ...
+
+        const CHAIN_METADATA = {
+        ...COSMOS_MAINNET_CHAINS,
+        ...SOLANA_MAINNET_CHAINS,
+        ...STACKS_MAINNET_CHAINS, // <== HERE
+        ...EIP155_MAINNET_CHAINS,
+        ...EIP155_TEST_CHAINS,
+        ...SOLANA_TEST_CHAINS,
+        ...STACKS_TEST_CHAINS // <== AND HERE
+        }
+
+        ...
+
+10. Add StacksData to `src/components/SessionChainCard.tsx`:
+
+    ...
+
+    import { STACKS_MAINNET_CHAINS, STACKS_TEST_CHAINS } from '@/data/StacksData'
+
+    ...
+
+    const CHAIN_METADATA = {
+    ...COSMOS_MAINNET_CHAINS,
+    ...SOLANA_MAINNET_CHAINS,
+    ...STACKS_MAINNET_CHAINS, // <=== HERE
+    ...EIP155_MAINNET_CHAINS,
+    ...EIP155_TEST_CHAINS,
+    ...SOLANA_TEST_CHAINS,
+    ...STACKS_TEST_CHAINS // <=== AND HERE
+    }
+
+    ...
+
+11. Add Stacks to Session Proposal Modal `src/views/SessionProposalModal.tsx`:
+
+        ...
+
+        import {
+            isCosmosChain,
+            isEIP155Chain,
+            isSolanaChain,
+            isStacksChain // <=== HERE
+        } from '@/utils/HelperUtil'
+
+        ...
+
+        import { stacksAddresses } from '@/utils/StacksWalletUtil'
+
+        ...
+
+        function renderAccountSelection(chain: string) {
+        ...
+            } else if (isStacksChain(chain)) {
+                return (
+                    <ProposalSelectSection
+                        addresses={stacksAddresses}
+                        selectedAddresses={selectedAccounts[chain]}
+                        onSelect={onSelectAccount}
+                        chain={chain}
+                    />
+                )
+            }
+        }
+
+    At this point, you should be able to connect your web app to the wallet!
+
+12. Exposing wallet's supported methods, modify `src/hooks/useWalletConnectEventsManager.ts`:
+
+        ...
+
+        import {
+            STACKS_DEFAULT_METHODS
+        } from "@web3devs/stacks-wallet-connect";
+
+        ...
+
+        const onSessionRequest = useCallback(
+            async (requestEvent: SignClientTypes.EventArguments['session_request']) => {
+                console.log('session_request', requestEvent)
+                const { topic, params } = requestEvent
+                const { request } = params
+                const requestSession = signClient.session.get(topic)
+
+                switch (request.method) {
+                    ...
+
+                    case STACKS_DEFAULT_METHODS.SIGN_MESSAGE:
+                    case STACKS_DEFAULT_METHODS.STX_TRANSFER:
+                    case STACKS_DEFAULT_METHODS.CONTRACT_CALL:
+                        return ModalStore.open('SessionSignStacksModal', { requestEvent, requestSession })
+        ...
+
+13. Add `SessionSignStacksModal` to Modal Store `src/store/ModalStore.ts`:
+
+        ...
+
+        interface State {
+            open: boolean
+            view?:
+                | 'SessionProposalModal'
+                | 'SessionSignModal'
+                | 'SessionSignTypedDataModal'
+                | 'SessionSendTransactionModal'
+                | 'SessionUnsuportedMethodModal'
+                | 'SessionSignCosmosModal'
+                | 'SessionSignSolanaModal'
+                | 'SessionSignStacksModal' // <== HERE
+            data?: ModalData
+        }
+
+14. Create the modal itself, add file `src/views/SessionSignStacksModal.tsx`:
+
+        import ProjectInfoCard from '@/components/ProjectInfoCard'
+        import RequestDataCard from '@/components/RequestDataCard'
+        import RequesDetailsCard from '@/components/RequestDetalilsCard'
+        import RequestMethodCard from '@/components/RequestMethodCard'
+        import RequestModalContainer from '@/components/RequestModalContainer'
+        import ModalStore from '@/store/ModalStore'
+        import { approveStacksRequest, rejectStacksRequest } from '@/utils/StacksRequestHandlerUtil'
+        import { signClient } from '@/utils/WalletConnectUtil'
+        import { Button, Divider, Modal, Text } from '@nextui-org/react'
+        import { Fragment } from 'react'
+
+        export default function SessionSignStacksModal() {
+            // Get request and wallet data from store
+            const requestEvent = ModalStore.state.data?.requestEvent
+            const requestSession = ModalStore.state.data?.requestSession
+
+            // Ensure request and wallet are defined
+            if (!requestEvent || !requestSession) {
+                return <Text>Missing request data</Text>
+            }
+
+            // Get required request data
+            const { topic, params } = requestEvent
+            const { request, chainId } = params
+
+            // Handle approve action (logic varies based on request method)
+            async function onApprove() {
+                if (requestEvent) {
+                const response = await approveStacksRequest(requestEvent)
+                await signClient.respond({
+                    topic,
+                    response
+                })
+                ModalStore.close()
+                }
+            }
+
+            // Handle reject action
+            async function onReject() {
+                if (requestEvent) {
+                const response = rejectStacksRequest(requestEvent)
+                await signClient.respond({
+                    topic,
+                    response
+                })
+                ModalStore.close()
+                }
+            }
+
+            return (
+                <Fragment>
+                <RequestModalContainer title="Sign Message">
+                    <ProjectInfoCard metadata={requestSession.peer.metadata} />
+
+                    <Divider y={2} />
+
+                    <RequesDetailsCard chains={[chainId ?? '']} protocol={requestSession.relay.protocol} />
+
+                    <Divider y={2} />
+
+                    <RequestDataCard data={params} />
+
+                    <Divider y={2} />
+
+                    <RequestMethodCard methods={[request.method]} />
+                </RequestModalContainer>
+
+                <Modal.Footer>
+                    <Button auto flat color="error" onClick={onReject}>
+                    Reject
+                    </Button>
+                    <Button auto flat color="success" onClick={onApprove}>
+                    Approve
+                    </Button>
+                </Modal.Footer>
+                </Fragment>
+            )
+        }
+
+15. Add the Stacks modal to Modal component `src/components/Modal.tsx`:
+
+        ...
+
+        import SessionSignStacksModal from '@/views/SessionSignStacksModal'
+
+        ...
+
+        return (
+            <NextModal blur open={open} style={{ border: '1px solid rgba(139, 139, 139, 0.4)' }}>
+                ...
+                {view === 'SessionSignStacksModal' && <SessionSignStacksModal />}
+            </NextModal>
+        )
 
 
 ## WebApp
