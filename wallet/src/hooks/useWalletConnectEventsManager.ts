@@ -1,11 +1,14 @@
 import { COSMOS_SIGNING_METHODS } from '@/data/COSMOSData'
 import { EIP155_SIGNING_METHODS } from '@/data/EIP155Data'
 import { SOLANA_SIGNING_METHODS } from '@/data/SolanaData'
-import { STACKS_SIGNING_METHODS } from '@/data/StacksData'
 import ModalStore from '@/store/ModalStore'
 import { signClient } from '@/utils/WalletConnectUtil'
 import { SignClientTypes } from '@walletconnect/types'
 import { useCallback, useEffect } from 'react'
+
+import {
+  STACKS_DEFAULT_METHODS
+} from "@web3devs/stacks-wallet-connect";
 
 export default function useWalletConnectEventsManager(initialized: boolean) {
   /******************************************************************************
@@ -50,9 +53,9 @@ export default function useWalletConnectEventsManager(initialized: boolean) {
         case SOLANA_SIGNING_METHODS.SOLANA_SIGN_TRANSACTION:
           return ModalStore.open('SessionSignSolanaModal', { requestEvent, requestSession })
 
-        case STACKS_SIGNING_METHODS.STACKS_SIGN_MESSAGE:
-        case STACKS_SIGNING_METHODS.STACKS_STX_TRANSFER:
-        case STACKS_SIGNING_METHODS.STACKS_CONTRACT_CALL:
+        case STACKS_DEFAULT_METHODS.SIGN_MESSAGE:
+        case STACKS_DEFAULT_METHODS.STX_TRANSFER:
+        case STACKS_DEFAULT_METHODS.CONTRACT_CALL:
           return ModalStore.open('SessionSignStacksModal', { requestEvent, requestSession })
 
         default:
