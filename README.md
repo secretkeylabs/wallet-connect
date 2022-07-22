@@ -23,38 +23,93 @@ For instructions on **how to integrate Wallet Connect with Stacks wallet into yo
 
 ## Setup
 
-1. Clone the repo (obviously)
-2. Insall dependencies in all 3 directories
+First, clone the repo (obviously)
 
-        cd wallet/webapp/stacks-wallet-connect
-        yarn
+### Generate an OpenConnect Project ID
+You can generate your own ProjectId at https://cloud.walletconnect.com
 
-3. Create linkable `@web3devs/stacks-wallet-connect` package
+### Install **stacks-wallet-connect** dependencies and make it linkable
+```bash
+cd stacks-wallet-connect
+yarn
+yarn link
+cd ..
+```
+### Set up and start **wallet** 
+1. Open a new terminal
+2. Build and link the **stacks-wallet-connect** module
+```bash
+cd wallet
+yarn
+yarn build  # TODO Fix the compile error
+yarn link @web3devs/stacks-wallet-connect
+```
+2. Create a local environment
+```bash
+cp .env.local.example .env.local
+```
+3. Add your WalletConnect Project ID to `NEXT_PUBLIC_PROJECT_ID`.
+4. Start the wallet app
+```bash
+yarn start
+```
 
-        cd stacks-wallet-connect
-        yarn link
+#### Compile errors
+The compile in step 2 fails with **many** errors. They seem to be the kinds of failures caused by a missing dependancy. Unfortunately, I don't know what the dependancy is.
+```text
+Failed to compile.
 
-4. Link the package in **wallet** and **webapp**
+./src/pages/_app.tsx
+1:20  Error: "@/components/Layout" is not found.  node/no-missing-import
+2:19  Error: "@/components/Modal" is not found.  node/no-missing-import
+3:31  Error: "@/hooks/useInitialization" is not found.  node/no-missing-import
+4:43  Error: "@/hooks/useWalletConnectEventsManager" is not found.  node/no-missing-import
+...
+```
 
-        cd wallet
-        yarn link @web3devs/stacks-wallet-connect
-        cd ..
-        cd webapp
-        yarn link @web3devs/stacks-wallet-connect
+### Set up and start the ***webapp***
+1. Open a new terminal
+2. Build and link the **stacks-wallet-connect** module
+```bash
+cd webapp
+yarn
+yarn build # TODO Fix the compile error
+yarn link @web3devs/stacks-wallet-connect
+```
+2. Create a local environment
+```bash
+cp .env.local.example .env.local
+```
+3. Add your WalletConnect Project ID to `NEXT_PUBLIC_PROJECT_ID`.
+4. Start the wallet app
+```bash
+yarn start
+```
 
-5. Configure **Wallet** and **WebApp** as detailed in their READMEs
-
-    * [Wallet](https://github.com/WalletConnect/web-examples/tree/main/wallets/react-wallet-v2/README.md)
-
-    * [WebApp](https://github.com/WalletConnect/web-examples/tree/main/dapps/react-dapp-v2/README.md)
-
-6. Starting the development environment
-
-        cd webapp
-        yarn start
-        cd ..
-        cd wallet
-        yarn dev
+#### Compile Errors
+There compile errors here are different, but also appear to be cause by a missing dependancy:
+```text
+Error: error:0308010C:digital envelope routines::unsupported
+    at new Hash (node:internal/crypto/hash:67:19)
+    at Object.createHash (node:crypto:133:10)
+    at module.exports (/Users/ken/Projects/wallet-connect-example/webapp/node_modules/webpack/lib/util/createHash.js:135:53)
+    at NormalModule._initBuildHash (/Users/ken/Projects/wallet-connect-example/webapp/node_modules/webpack/lib/NormalModule.js:417:16)
+    at handleParseError (/Users/ken/Projects/wallet-connect-example/webapp/node_modules/webpack/lib/NormalModule.js:471:10)
+    at /Users/ken/Projects/wallet-connect-example/webapp/node_modules/webpack/lib/NormalModule.js:503:5
+    at /Users/ken/Projects/wallet-connect-example/webapp/node_modules/webpack/lib/NormalModule.js:358:12
+    at /Users/ken/Projects/wallet-connect-example/webapp/node_modules/loader-runner/lib/LoaderRunner.js:373:3
+    at iterateNormalLoaders (/Users/ken/Projects/wallet-connect-example/webapp/node_modules/loader-runner/lib/LoaderRunner.js:214:10)
+    at iterateNormalLoaders (/Users/ken/Projects/wallet-connect-example/webapp/node_modules/loader-runner/lib/LoaderRunner.js:221:10)
+    at /Users/ken/Projects/wallet-connect-example/webapp/node_modules/loader-runner/lib/LoaderRunner.js:236:3
+    at runSyncOrAsync (/Users/ken/Projects/wallet-connect-example/webapp/node_modules/loader-runner/lib/LoaderRunner.js:130:11)
+    at iterateNormalLoaders (/Users/ken/Projects/wallet-connect-example/webapp/node_modules/loader-runner/lib/LoaderRunner.js:232:2)
+    at Array.<anonymous> (/Users/ken/Projects/wallet-connect-example/webapp/node_modules/loader-runner/lib/LoaderRunner.js:205:4)
+    at Storage.finished (/Users/ken/Projects/wallet-connect-example/webapp/node_modules/enhanced-resolve/lib/CachedInputFileSystem.js:55:16)
+    at /Users/ken/Projects/wallet-connect-example/webapp/node_modules/enhanced-resolve/lib/CachedInputFileSystem.js:91:9
+/Users/ken/Projects/wallet-connect-example/webapp/node_modules/react-scripts/scripts/build.js:19
+  throw err;
+  ^
+```
 
 # Integration tutorial
 
