@@ -22,6 +22,7 @@
     "lint": "eslint -c '../../.eslintrc' --fix './src/**/*.ts'"
   },
   "dependencies": {
+    "@stacks/transactions": "^4.3.3",
     "caip-api": "^2.0.0-beta.1"
   },
   "devDependencies": {
