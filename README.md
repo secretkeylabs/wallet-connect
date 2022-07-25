@@ -32,6 +32,7 @@ For instructions on **how to integrate Wallet Connect with Stacks wallet into yo
 3. Create linkable `@web3devs/stacks-wallet-connect` package
 
         cd stacks-wallet-connect
+        yarn build
         yarn link
 
 4. Link the package in **wallet** and **webapp**
