@@ -7,6 +7,8 @@ For instructions on **how to develop THIS package**, see: [Local development](#l
 
 For instructions on **how to integrate Wallet Connect with Stacks wallet into your app**, see: [Integration tutorial](#integration-tutorial).
 
+> **IMPORTANT:** Use **node v16.x** - current node version on Mac is **v18.x**, but it introduces breaking changes! The `stacks-wallet-connect` lib should work with anything, but `webapp` and `wallet` apps provided with this repo break (you could use their original version or open a ticket in WalletConnect repos).
+
 # Apps
 
 1. [Wallet](/wallet/README.md) - react app that simulates a wallet
@@ -522,23 +524,23 @@ First of all we need to import Stacks libraries, second - configure a dummy acco
 
 10. Add StacksData to `src/components/SessionChainCard.tsx`:
 
-    ...
+        ...
 
-    import { STACKS_MAINNET_CHAINS, STACKS_TEST_CHAINS } from '@/data/StacksData'
+        import { STACKS_MAINNET_CHAINS, STACKS_TEST_CHAINS } from '@/data/StacksData'
 
-    ...
+        ...
 
-    const CHAIN_METADATA = {
-    ...COSMOS_MAINNET_CHAINS,
-    ...SOLANA_MAINNET_CHAINS,
-    ...STACKS_MAINNET_CHAINS, // <=== HERE
-    ...EIP155_MAINNET_CHAINS,
-    ...EIP155_TEST_CHAINS,
-    ...SOLANA_TEST_CHAINS,
-    ...STACKS_TEST_CHAINS // <=== AND HERE
-    }
+        const CHAIN_METADATA = {
+        ...COSMOS_MAINNET_CHAINS,
+        ...SOLANA_MAINNET_CHAINS,
+        ...STACKS_MAINNET_CHAINS, // <=== HERE
+        ...EIP155_MAINNET_CHAINS,
+        ...EIP155_TEST_CHAINS,
+        ...SOLANA_TEST_CHAINS,
+        ...STACKS_TEST_CHAINS // <=== AND HERE
+        }
 
-    ...
+        ...
 
 11. Add Stacks to Session Proposal Modal `src/views/SessionProposalModal.tsx`:
 
