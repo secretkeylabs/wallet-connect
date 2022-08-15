@@ -31,17 +31,27 @@ import { useChainData } from "./ChainDataContext";
 import {
   PostConditionMode,
   FungibleConditionCode,
+  uintCV,
+  noneCV,
+  standardPrincipalCV,
+  cvToHex,
+  makeStandardFungiblePostCondition,
+  createAssetInfo
 } from '@stacks/transactions'
 import BN from 'bn.js'
 
 import {
-  makeStandardFungiblePostCondition,
-  createAssetInfo,
-  uintCV,
-  standardPrincipalCV,
-  noneCV,
+  // makeStandardFungiblePostCondition,
+  // createAssetInfo,
+  // uintCV,
+  // standardPrincipalCV,
+  // noneCV,
   STACKS_DEFAULT_METHODS
 } from "@web3devs/stacks-wallet-connect";
+
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
 
 /**
  * Types
@@ -581,6 +591,7 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
             address,
             FungibleConditionCode.Equal,
             orderAmount.toString(),
+            // new AssetInfo(contractAddress, contractName, tokenName)
             createAssetInfo(
               contractAddress,
               contractName,
@@ -602,10 +613,10 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
                 contractName: contractName,
                 functionName: 'transfer',
                 functionArgs: [
-                  uintCV(orderAmount.toString()),
-                  standardPrincipalCV(address),
-                  standardPrincipalCV(addressTo),
-                  noneCV(),
+                  cvToHex(uintCV(orderAmount.toString())),
+                  cvToHex(standardPrincipalCV(address)),
+                  cvToHex(standardPrincipalCV(addressTo)),
+                  cvToHex(noneCV()),
                 ],
                 // postConditionMode: PostConditionMode.Allow,
                 postConditionMode: PostConditionMode.Deny,

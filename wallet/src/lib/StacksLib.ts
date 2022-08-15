@@ -1,5 +1,5 @@
 import { generateWallet, Wallet } from "@stacks/wallet-sdk";
-import { makeSTXTokenTransfer, makeContractCall, broadcastTransaction, AnchorMode } from '@stacks/transactions';
+import { makeSTXTokenTransfer, makeContractCall, broadcastTransaction, AnchorMode, hexToCV } from '@stacks/transactions';
 import { StacksNetworkName } from '@stacks/network';
 import { BigNumber } from 'bignumber.js';
 
@@ -73,12 +73,14 @@ export default class StacksLib {
 
         const functionArgs = [];
         for (const arg of params.functionArgs) {
-            functionArgs.push(toRealCV(arg));
+            functionArgs.push(hexToCV(arg));
+            // functionArgs.push(toRealCV(arg));
         }
 
         const postConditions = [];
         for (const pc of params.postConditions) {
-            postConditions.push(toRealPostCondition(pc));
+            postConditions.push(pc);
+            // postConditions.push(toRealPostCondition(pc));
         }
 
         const txOptions = {
