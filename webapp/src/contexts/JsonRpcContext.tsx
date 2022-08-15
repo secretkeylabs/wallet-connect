@@ -49,6 +49,7 @@ import {
   STACKS_DEFAULT_METHODS
 } from "@web3devs/stacks-wallet-connect";
 
+// Fix JSON serialization for BigInt
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
 };
@@ -596,7 +597,7 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
               contractAddress,
               contractName,
               tokenName
-            )
+              )
           )
         );
 
@@ -613,13 +614,14 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
                 contractName: contractName,
                 functionName: 'transfer',
                 functionArgs: [
-                  cvToHex(uintCV(orderAmount.toString())),
-                  cvToHex(standardPrincipalCV(address)),
-                  cvToHex(standardPrincipalCV(addressTo)),
-                  cvToHex(noneCV()),
+                  uintCV(orderAmount.toString()),
+                  standardPrincipalCV(address),
+                  standardPrincipalCV(addressTo),
+                  noneCV(),
                 ],
                 // postConditionMode: PostConditionMode.Allow,
                 postConditionMode: PostConditionMode.Deny,
+                version: '1'
               },
             },
           });
