@@ -1,51 +1,54 @@
-# React dApp (with standalone v2 client)
+Wallet Connect v2.0-rc for Stacks 
+=================================
 
-🔗 Live dapp demo - https://react-app.walletconnect.com/ <br />
-🔗 Live wallet demo - https://react-wallet.walletconnect.com/ <br />
-📚 WalletConnect v2 Docs - https://docs.walletconnect.com/2.0
+The goal of this tutorial is to show the **minimal** approach to connect Wallet Connect (and Stacks) with your app.
 
-## Overview
+1. Create a React project
 
-This is an example implementation of a React dApp (generated via `create-react-app`) using the standalone
-client for WalletConnect v2 to:
+    ```sh
+    npx create-react-app webapp
+    cd webapp
+    yarn start
+    ```
 
-- handle pairings
-- manage sessions
-- send JSON-RPC requests to a paired wallet
+2. Clear the contents of `src/App.css` - remove everything, leave empty file.
 
-## Running locally
+3. Remove everything "unnecessary" from `src/App.js`, the end result should look like this:
 
-Install the app's dependencies:
+    ```javascript
+    import './App.css';
 
-```bash
-yarn
-```
+    function App() {
+    return (
+            <div>foo</div>
+        );
+    }
 
-Set up your local environment variables by copying the example into your own `.env.local` file:
+    export default App;
+    ```
 
-```bash
-cp .env.local.example .env.local
-```
+4. Install WalletConnect
 
-Your `.env.local` now contains the following environment variables:
+    ```sh
+    yarn add @walletconnect/utils@2.0.0-rc.2
+    yarn add @walletconnect/types@2.0.0-rc.2
+    yarn add @walletconnect/sign-client@2.0.0-rc.2
+    yarn add @walletconnect/encoding@^1.0.1
+    yarn add @walletconnect/qrcode-modal@^1.7.8
+    ```
 
-- `REACT_APP_PROJECT_ID` (placeholder) - You can generate your own ProjectId at https://cloud.walletconnect.com
-- `REACT_APP_RELAY_URL` (already set)
+5. Find your network(-s) `chainID` on [ChainList](https://chainlist.org/) and/or [CAIP-APIP](https://github.com/pedrouid/caip-api/blob/master/src/config/)
 
-## Develop
+    You need your network's chainID. It's generaly in a form of a string containing network name and a number, ex. `foo:123`. You can find both on ChainLink and CAIP-API.
 
-```bash
-yarn start
-```
+    In case of Stacks, the chain IDs you're interested in are:
 
-## Test
+    ```
+    # Mainnet
+    "stacks:1"
 
-```bash
-yarn test
-```
+    #Testnet
+    "stacks:2147483648"
+    ```
 
-## Build
-
-```bash
-yarn build
-```
+6. 
