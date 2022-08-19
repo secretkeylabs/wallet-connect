@@ -10,6 +10,17 @@ import {
 import { StacksNetworkName } from '@stacks/network';
 import { BigNumber } from 'bignumber.js';
 
+import {
+    PostConditionMode,
+    FungibleConditionCode,
+    uintCV,
+    noneCV,
+    standardPrincipalCV,
+    cvToHex,
+    makeStandardFungiblePostCondition,
+    createAssetInfo
+  } from '@stacks/transactions'
+
 import { toRealCV, toRealPostCondition } from "@web3devs/stacks-wallet-connect";
 
 /**
@@ -80,12 +91,23 @@ export default class StacksLib {
 
         const functionArgs = [];
         for (const arg of params.functionArgs) {
-            functionArgs.push(arg as ClarityValue);
+            // functionArgs.push(arg as ClarityValue);
+            functionArgs.push(hexToCV(arg));
         }
 
         const postConditions = [];
         for (const pc of params.postConditions) {
-            postConditions.push(pc);
+            // postConditions.push(pc);
+            // postConditions.push(pc.function(...pc.functionArgs));
+            // postConditions.push(funcs[pc.function](...pc.functionArgs));
+
+            switch (pc.function) {
+                case 'makeStandardFungiblePostCondition':
+                    postConditions.push(makeStandardFungiblePostCondition.apply(this, pc.functionArgs));
+                    break;
+                default:
+                    break;
+            }
         }
 
         const txOptions = {
