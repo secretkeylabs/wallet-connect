@@ -1,0 +1,23 @@
+.main {
+    margin: auto;
+    width: 75%;
+}
+
+.box {
+    background: #ff5fb7;
+    padding: 0.5rem 1rem;
+    margin: 0 0 1rem 0;
+}
+
+.box.code {
+    background: lightslategray;
+    overflow: scroll;
+}
+
+.box h3 {
+    margin: 0.3rem 0;
+}
+
+button {
+    margin: 0.3rem;
+}
