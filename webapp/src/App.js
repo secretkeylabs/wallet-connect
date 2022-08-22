@@ -1,3 +1,4 @@
+import './App.css';
 import { useState, useEffect } from 'react';
 import Client from "@walletconnect/sign-client";
 import QRCodeModal from "@walletconnect/qrcode-modal";
@@ -7,44 +8,44 @@ import {
   uintCV,
   noneCV,
   standardPrincipalCV,
-  cvToHex,
-  createAssetInfo
-} from '@stacks/transactions'
-import './App.css';
+  createAssetInfo,
+  makeStandardFungiblePostCondition,
+} from '@stacks/transactions';
+
+/* global BigInt */
+
+BigInt.prototype.toJSON = function() { return this.toString() }
 
 const chains = [
-    'stacks:1',
-    'stacks:2147483648',
+  'stacks:1',
+  'stacks:2147483648',
 ];
-
-// BigInt.prototype.toJSON = function() { return this.toString()  };
 
 function App() {
   const [ client, setClient ] = useState(undefined);
-  const [ session, setSession ] = useState(undefined);
   const [ chain, setChain ] = useState(undefined);
+  const [ session, setSession ] = useState(undefined);
   const [ result, setResult ] = useState(undefined);
 
   useEffect(() => {
     const f = async () => {
-      const c = await Client.init({
-        logger: 'debug',
-        relayUrl: 'wss://relay.walletconnect.com',
-        projectId: 'someProjectID',
-        metadata: {
-          name: "WalletConnect with Stacks",
-          description: "WalletConnect & Stacks",
-          url: "https://walletconnect.com/",
-          icons: ["https://avatars.githubusercontent.com/u/37784886"],
-        },
-      });
-      console.log('client: ', c);
+        const c = await Client.init({
+            logger: 'debug',
+            relayUrl: 'wss://relay.walletconnect.com',
+            projectId: 'someProjectID', //register at WalletConnect and create one for yourself - it's NOT necessary for this tutorial
+            metadata: {
+            name: "WalletConnect with Stacks",
+            description: "WalletConnect & Stacks",
+            url: "https://walletconnect.com/",
+            icons: ["https://avatars.githubusercontent.com/u/37784886"],
+            },
+        });
 
-      setClient(c);
+        setClient(c);
     }
 
     if (client === undefined) {
-      f();
+        f();
     }
   }, [client]);
 
@@ -56,9 +57,10 @@ function App() {
       requiredNamespaces: {
         "stacks":{
           "methods":[
+            'stacks_signMessage',
             'stacks_stxTransfer',
             'stacks_contractCall',
-            'stacks_signMessage',
+            'stacks_contractDeploy',
           ],
           "chains":[
             chain
@@ -67,7 +69,6 @@ function App() {
         }
       },
     });
-    console.log('URI: ', uri);
 
     if (uri) {
       QRCodeModal.open(uri, () => {
@@ -82,31 +83,105 @@ function App() {
     QRCodeModal.close();
   };
 
+  const handleSignMessage = async () => {
+    const address = session.namespaces.stacks.accounts[0].split(':')[2];
+
+    try {
+        const message = 'loremipsum';
+
+        const result = await client.request({
+            chainId: chain,
+            topic: session.topic,
+            request: {
+                method: 'stacks_signMessage',
+                params: {
+                    pubkey: address, //XXX: This one is required
+                    message,
+                },
+            },
+        });
+
+        //dummy check of signature
+        const valid = result.signature === message + '+SIGNED';
+
+        setResult({
+            method: 'stacks_signMessage',
+            address,
+            valid,
+            result: result.signature,
+        });
+    } catch (error) {
+        throw new Error(error);
+    }
+  };
+
+  const handleContractDeploy = async () => {
+    const address = session.namespaces.stacks.accounts[0].split(':')[2];
+
+    try {
+        const result = await client.request({
+            chainId: chain,
+            topic: session.topic,
+            request: {
+                method: 'stacks_contractDeploy',
+                params: {
+                    pubkey: address, //XXX: This one is required
+                    contractName: 'my_contract_name_3', //XXX: CHange the contract name!
+                    codeBody: `
+;; hello-world
+;; <add a description here>
+;; constants
+;;
+;; data maps and vars
+;;
+;; private functions
+;;
+(define-read-only (echo-number (val int)) (ok val))
+;; public functions
+;;
+(define-public (say-hi) (ok "hello world"))
+                    `,
+                    postConditionMode: PostConditionMode.Allow,
+                },
+            },
+        });
+
+        setResult({
+            method: 'stacks_contractDeploy',
+            address,
+            valid: true,
+            result: result.txId,
+        });
+    } catch (error) {
+        throw new Error(error);
+    }
+  };
+
   const handleTransferSTX = async () => {
     const address = session.namespaces.stacks.accounts[0].split(':')[2];
 
     try {
-      const result = await client.request({
-        chainId: chain,
-        topic: session.topic,
-        request: {
-          method: 'stacks_stxTransfer',
-          params: {
-            pubkey: address, //XXX: This one is required
-            recipient: 'ST3Q85SVTW7J3XQ38V7V88653YN90728NMM46J2ZE',
-            amount: 12,
-          },
-        },
-      });
+        const result = await client.request({
+            chainId: chain,
+            topic: session.topic,
+            request: {
+                method: 'stacks_stxTransfer',
+                params: {
+                    pubkey: address, //XXX: This one is required
+                    recipient: 'ST3Q85SVTW7J3XQ38V7V88653YN90728NMM46J2ZE',
+                    amount: 12,
+                },
+            },
+        });
 
-      setResult({
-        method: 'stacks_stxTransfer',
-        address,
-        valid: true,
-        result: result.txId,
-      });
+        setResult({
+            method: 'stacks_stxTransfer',
+            address,
+            valid: true,
+            result: result.txId,
+        });
     } catch (error) {
-      throw new Error(error);
+        throw new Error(error);
     }
   };
 
@@ -122,9 +197,8 @@ function App() {
 
     // Define post conditions
     const postConditions = [];
-    postConditions.push({
-      function: 'makeStandardFungiblePostCondition',
-      functionArgs: [
+    postConditions.push(
+      makeStandardFungiblePostCondition(
         address,
         FungibleConditionCode.Equal,
         orderAmount.toString(),
@@ -133,8 +207,8 @@ function App() {
           contractName,
           tokenName
         )
-      ]
-    })
+      )
+    );
 
     try {
       const result = await client.request({
@@ -149,10 +223,10 @@ function App() {
             contractName: contractName,
             functionName: 'transfer',
             functionArgs: [
-              cvToHex(uintCV(orderAmount.toString())),
-              cvToHex(standardPrincipalCV(address)),
-              cvToHex(standardPrincipalCV(addressTo)),
-              cvToHex(noneCV()),
+              uintCV(orderAmount.toString()),
+              standardPrincipalCV(address),
+              standardPrincipalCV(addressTo),
+              noneCV(),
             ],
             postConditionMode: PostConditionMode.Deny,
             version: '1'
@@ -171,72 +245,40 @@ function App() {
     }
   };
 
-  const handleSignMessage = async () => {
-    const address = session.namespaces.stacks.accounts[0].split(':')[2];
-
-    try {
-      const message = 'loremipsum';
-
-      const result = await client.request({
-        chainId: chain,
-        topic: session.topic,
-        request: {
-          method: 'stacks_signMessage',
-          params: {
-            pubkey: address, //XXX: This one is required
-            message,
-          },
-        },
-      });
-
-      //dummy check of signature
-      const valid = result.signature === message + '+SIGNED';
-
-      setResult({
-        method: 'stacks_signMessage',
-        address,
-        valid,
-        result: result.signature,
-      });
-    } catch (error) {
-      throw new Error(error);
-    }
-  };
-
   return (
-    <div class="main">
-      <h1>Wallet Connect with Stacks</h1>
+    <div className="main">
+        <h1>Wallet Connect with Stacks</h1>
 
-      {
-        !session && (
-          <div class="box">
-            <h3>Select chain:</h3>
-            {chains.map((c, idx) => {
-              return (<div key={`chain-${idx}`}>{c} <button disabled={!client} onClick={async () => await handleConnect(c)}>connect</button></div>);
-            })}
-          </div>
-        )
-      }
+        {
+            !session && (
+            <div className="box">
+                <h3>Select chain:</h3>
+                {chains.map((c, idx) => {
+                    return (<div key={`chain-${idx}`}>{c} <button disabled={!client} onClick={async () => await handleConnect(c)}>connect</button></div>);
+                })}
+            </div>
+            )
+        }
 
-      {
-        session && (
-          <div class="box">
-            <h3>Wallet connected!</h3>
-            <div><button onClick={async () => await handleTransferSTX()}>Transfer STX</button></div>
-            <div><button onClick={async () => await handleContractCall()}>Call Contract</button></div>
-            <div><button onClick={async () => await handleSignMessage()}>Sign Message</button></div>
-            <div><button onClick={async () => await handleSignMessage()}>Sign Message</button></div>
-          </div>
-        )
-      }
+        {
+          session && (
+              <div className="box">
+                  <h3>Wallet connected!</h3>
+                  <div><button onClick={async () => await handleSignMessage()}>Sign Message</button></div>
+                  <div><button onClick={async () => await handleTransferSTX()}>Transfer STX</button></div>
+                  <div><button onClick={async () => await handleContractCall()}>Call Contract</button></div>
+                  <div><button onClick={async () => await handleContractDeploy()}>Deploy Contract</button></div>
+              </div>
+          )
+        }
 
-      {
-        result && (
-          <div class="box code">
-            <pre>{JSON.stringify(result, '  ', '  ')}</pre>
-          </div>
-        )
-      }
+        {
+            result && (
+              <div className="box code">
+                <pre>{JSON.stringify(result, '  ', '  ')}</pre>
+              </div>
+            )
+        }
     </div>
   );
 }
