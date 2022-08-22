@@ -57,6 +57,7 @@ export default function useWalletConnectEventsManager(initialized: boolean) {
         case STACKS_DEFAULT_METHODS.SIGN_MESSAGE:
         case STACKS_DEFAULT_METHODS.STX_TRANSFER:
         case STACKS_DEFAULT_METHODS.CONTRACT_CALL:
+        case STACKS_DEFAULT_METHODS.CONTRACT_DEPLOY:
           return ModalStore.open('SessionSignStacksModal', { requestEvent, requestSession })
 
         case POLKADOT_SIGNING_METHODS.POLKADOT_SIGN_MESSAGE:

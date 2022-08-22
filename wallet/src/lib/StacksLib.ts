@@ -1,27 +1,14 @@
 import { generateWallet, Wallet } from "@stacks/wallet-sdk";
 import { 
     makeSTXTokenTransfer, 
-    makeContractCall, 
+    makeContractCall,
+    makeContractDeploy,
     broadcastTransaction, 
     AnchorMode, 
-    hexToCV,
-    ClarityValue
+    ClarityValue,
 } from '@stacks/transactions';
 import { StacksNetworkName } from '@stacks/network';
 import { BigNumber } from 'bignumber.js';
-
-import {
-    PostConditionMode,
-    FungibleConditionCode,
-    uintCV,
-    noneCV,
-    standardPrincipalCV,
-    cvToHex,
-    makeStandardFungiblePostCondition,
-    createAssetInfo
-  } from '@stacks/transactions'
-
-import { toRealCV, toRealPostCondition } from "@web3devs/stacks-wallet-connect";
 
 /**
  * Types
@@ -91,23 +78,12 @@ export default class StacksLib {
 
         const functionArgs = [];
         for (const arg of params.functionArgs) {
-            // functionArgs.push(arg as ClarityValue);
-            functionArgs.push(hexToCV(arg));
+            functionArgs.push(arg as ClarityValue);
         }
 
         const postConditions = [];
         for (const pc of params.postConditions) {
-            // postConditions.push(pc);
-            // postConditions.push(pc.function(...pc.functionArgs));
-            // postConditions.push(funcs[pc.function](...pc.functionArgs));
-
-            switch (pc.function) {
-                case 'makeStandardFungiblePostCondition':
-                    postConditions.push(makeStandardFungiblePostCondition.apply(this, pc.functionArgs));
-                    break;
-                default:
-                    break;
-            }
+            postConditions.push(pc);
         }
 
         const txOptions = {
@@ -124,6 +100,34 @@ export default class StacksLib {
         };
 
         const transaction = await makeContractCall(txOptions);
+
+        // to see the raw serialized tx
+        const serializedTx = transaction.serialize().toString('hex');
+
+        // broadcasting transaction to the specified network
+        const broadcastResponse = await broadcastTransaction(transaction);
+        const txId = broadcastResponse.txid;
+
+        console.log('SIGN TXN: ', txId);
+        return { txId }
+    }
+
+    public async contractDeploy(params: any) {
+        const wallet = await generateWallet({
+            secretKey: this.getSecretKey(),
+            password: '',
+        });
+
+        const txOptions = {
+            senderKey: wallet.accounts[0].stxPrivateKey,
+            network: 'testnet' as StacksNetworkName, // for mainnet, use 'mainnet'
+            contractName: params.contractName,
+            codeBody: params.codeBody,
+            postConditionMode: params.postConditionMode,
+            anchorMode: AnchorMode.Any,
+        };
+
+        const transaction = await makeContractDeploy(txOptions);
 
         // to see the raw serialized tx
         const serializedTx = transaction.serialize().toString('hex');

@@ -30,6 +30,10 @@ export async function approveStacksRequest(
 
       return formatJsonRpcResult(id, contractCallTxn)
 
+    case STACKS_DEFAULT_METHODS.CONTRACT_DEPLOY:
+      const contractDeployTxn = await wallet.contractDeploy(request.params)
+
+      return formatJsonRpcResult(id, contractDeployTxn)
     default:
       throw new Error(getSdkError('INVALID_METHOD').message)
   }
