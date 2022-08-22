@@ -29,9 +29,10 @@ export const StacksChainData: ChainsMap = {
 
 //Default methods that "should" be implemented by all stacks wallets
 export enum STACKS_DEFAULT_METHODS {
+    SIGN_MESSAGE = "stacks_signMessage",
     STX_TRANSFER = "stacks_stxTransfer",
     CONTRACT_CALL = "stacks_contractCall",
-    SIGN_MESSAGE = "stacks_signMessage",
+    CONTRACT_DEPLOY = "stacks_contractDeploy",
 }
 
 //Default events that "should" be implemented by all stacks wallets
