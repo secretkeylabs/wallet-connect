@@ -78,12 +78,12 @@ We'll take you through these steps:
             const c = await Client.init({
                 logger: 'debug',
                 relayUrl: 'wss://relay.walletconnect.com',
-                projectId: 'someProjectID', //register at WalletConnect and create one for yourself - it's NOT necessary for this tutorial
+                projectId: 'yourProjectID', // register at WalletConnect and create one for yourself - https://cloud.walletconnect.com/
                 metadata: {
-                name: "WalletConnect with Stacks",
-                description: "WalletConnect & Stacks",
-                url: "https://walletconnect.com/",
-                icons: ["https://avatars.githubusercontent.com/u/37784886"],
+                    name: "WalletConnect with Stacks",
+                    description: "WalletConnect & Stacks",
+                    url: "https://walletconnect.com/",
+                    icons: ["https://avatars.githubusercontent.com/u/37784886"],
                 },
             });
 
@@ -197,7 +197,7 @@ We do that by providing selected Network's `chainID` to Wallet Connect client.
     setChain(undefined);
     ```
 
-    Prior connecting our app with the wallet, we need to know a couple of things:
+    Prior to connecting our app with the wallet, we need to know a couple of things:
     - what are the supported methods?
     - what are the supported events?
     - what are the supported chains?

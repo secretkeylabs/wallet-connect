@@ -31,13 +31,13 @@ function App() {
     const f = async () => {
         const c = await Client.init({
             logger: 'debug',
-            relayUrl: 'wss://relay.walletconnect.com',
-            projectId: 'someProjectID', //register at WalletConnect and create one for yourself - it's NOT necessary for this tutorial
+            // relayUrl: 'wss://relay.walletconnect.com',
+            projectId: 'your_project_id', //register at WalletConnect and create one for yourself - it's NOT necessary for this tutorial
             metadata: {
-            name: "WalletConnect with Stacks",
-            description: "WalletConnect & Stacks",
-            url: "https://walletconnect.com/",
-            icons: ["https://avatars.githubusercontent.com/u/37784886"],
+              name: "WalletConnect with Stacks",
+              description: "WalletConnect & Stacks",
+              url: "https://walletconnect.com/",
+              icons: ["https://avatars.githubusercontent.com/u/37784886"],
             },
         });
 
