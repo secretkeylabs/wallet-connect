@@ -32,7 +32,8 @@ function App() {
         const c = await Client.init({
             logger: 'debug',
             // relayUrl: 'wss://relay.walletconnect.com',
-            projectId: 'your_project_id', //register at WalletConnect and create one for yourself - it's NOT necessary for this tutorial
+            projectId: 'your_project_id', // register at WalletConnect and create one for yourself - https://cloud.walletconnect.com/
+            // you need to have a valid ID or the app will not start
             metadata: {
               name: "WalletConnect with Stacks",
               description: "WalletConnect & Stacks",

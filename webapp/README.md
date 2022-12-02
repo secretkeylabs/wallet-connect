@@ -79,6 +79,7 @@ We'll take you through these steps:
                 logger: 'debug',
                 relayUrl: 'wss://relay.walletconnect.com',
                 projectId: 'yourProjectID', // register at WalletConnect and create one for yourself - https://cloud.walletconnect.com/
+                // you need to have a valid ID or the app will not start
                 metadata: {
                     name: "WalletConnect with Stacks",
                     description: "WalletConnect & Stacks",
