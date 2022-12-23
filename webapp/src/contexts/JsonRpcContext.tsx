@@ -36,9 +36,9 @@ import {
   standardPrincipalCV,
   cvToHex,
   makeStandardFungiblePostCondition,
-  createAssetInfo
-} from '@stacks/transactions'
-import BN from 'bn.js'
+  createAssetInfo,
+} from "@stacks/transactions";
+import BN from "bn.js";
 
 import {
   // makeStandardFungiblePostCondition,
@@ -46,7 +46,7 @@ import {
   // uintCV,
   // standardPrincipalCV,
   // noneCV,
-  STACKS_DEFAULT_METHODS
+  STACKS_DEFAULT_METHODS,
 } from "@web3devs/stacks-wallet-connect";
 
 // Fix JSON serialization for BigInt
@@ -338,7 +338,12 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
 
       const valid =
         utils
-          .verifyTypedData(eip712.example.domain, nonDomainTypes, eip712.example.message, signature)
+          .verifyTypedData(
+            eip712.example.domain,
+            nonDomainTypes,
+            eip712?.example?.message,
+            signature,
+          )
           .toLowerCase() === address.toLowerCase();
 
       return {
@@ -569,21 +574,25 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
       },
     ),
   };
-  
+
   // -------- STACKS RPC METHODS --------
   const stacksRpc = {
     exampleContractCall: _createJsonRpcRequestHandler(
       async (chainId: string, address: string): Promise<IFormattedRpcResponse> => {
         console.log("exampleContractCall", chainId, address, isTestnet);
 
-        const contract = 'ST24YYAWQ4DK4RKCKK1RP4PX0X5SCSXTWQXFGVCVY.fake-miamicoin-token-V2';
-        const contractPts = contract.split('.');
+        const contract = isTestnet
+          ? "ST24YYAWQ4DK4RKCKK1RP4PX0X5SCSXTWQXFGVCVY.fake-miamicoin-token-V2"
+          : "SP1H1733V5MZ3SZ9XRW9FKYGEZT0JDGEB8Y634C7R.miamicoin-token-v2";
+        const contractPts = contract.split(".");
         const contractAddress = contractPts[0];
         const contractName = contractPts[1];
-        const tokenName = 'miamicoin'; //XXX: It's hidden in the contract's code but it's not hard to find.
+        const tokenName = "miamicoin"; //XXX: It's hidden in the contract's code but it's not hard to find.
 
         const orderAmount = new BN(13).mul(new BN(10 ** 6));
-        const addressTo = 'ST3Q85SVTW7J3XQ38V7V88653YN90728NMM46J2ZE';
+        const addressTo = isTestnet
+          ? "ST3Q85SVTW7J3XQ38V7V88653YN90728NMM46J2ZE"
+          : "SPZ3SYSA0075FEB41MQR1XMC9HAGTYN2J0BE4F4E";
 
         // Define post conditions
         const postConditions = [];
@@ -593,12 +602,8 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
             FungibleConditionCode.Equal,
             orderAmount.toString(),
             // new AssetInfo(contractAddress, contractName, tokenName)
-            createAssetInfo(
-              contractAddress,
-              contractName,
-              tokenName
-              )
-          )
+            createAssetInfo(contractAddress, contractName, tokenName),
+          ),
         );
 
         try {
@@ -612,7 +617,7 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
                 postConditions,
                 contractAddress: contractAddress,
                 contractName: contractName,
-                functionName: 'transfer',
+                functionName: "transfer",
                 functionArgs: [
                   uintCV(orderAmount.toString()),
                   standardPrincipalCV(address),
@@ -621,12 +626,12 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
                 ],
                 // postConditionMode: PostConditionMode.Allow,
                 postConditionMode: PostConditionMode.Deny,
-                version: '1'
+                version: "1",
               },
             },
           });
 
-          console.log('result', result);
+          console.log("result", result);
 
           return {
             method: STACKS_DEFAULT_METHODS.CONTRACT_CALL,
@@ -635,7 +640,7 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
             result: result.txId,
           };
         } catch (error: any) {
-          console.log('ERROR: ', error);
+          console.log("ERROR: ", error);
           throw new Error(error);
         }
       },
@@ -644,6 +649,9 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
       async (chainId: string, address: string): Promise<IFormattedRpcResponse> => {
         console.log("exampleStxTransfer", chainId, address, isTestnet);
 
+        const recip = isTestnet
+          ? "ST3Q85SVTW7J3XQ38V7V88653YN90728NMM46J2ZE"
+          : "SPZ3SYSA0075FEB41MQR1XMC9HAGTYN2J0BE4F4E";
         try {
           const result = await client!.request<{ txId: string }>({
             chainId,
@@ -652,13 +660,13 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
               method: STACKS_DEFAULT_METHODS.STX_TRANSFER,
               params: {
                 pubkey: address, //XXX: This one is required
-                recipient: 'ST3Q85SVTW7J3XQ38V7V88653YN90728NMM46J2ZE',
+                recipient: recip,
                 amount: 12,
               },
             },
           });
 
-          console.log('result', result);
+          console.log("result", result);
 
           return {
             method: STACKS_DEFAULT_METHODS.STX_TRANSFER,
@@ -667,14 +675,14 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
             result: result.txId,
           };
         } catch (error: any) {
-          console.log('ERROR: ', error);
+          console.log("ERROR: ", error);
           throw new Error(error);
         }
       },
     ),
     exampleSignMessage: _createJsonRpcRequestHandler(
       async (chainId: string, address: string): Promise<IFormattedRpcResponse> => {
-        const message = 'loremipsum';
+        const message = "loremipsum";
 
         try {
           const result = await client!.request<{ signature: string }>({
@@ -690,7 +698,7 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
           });
 
           //dummy check of signature
-          const valid = result.signature === message + '+SIGNED';
+          const valid = result.signature === message + "+SIGNED";
 
           return {
             method: STACKS_DEFAULT_METHODS.SIGN_MESSAGE,
