@@ -66,7 +66,6 @@ export function getWalletAddressFromParams(addresses: string[], params: any) {
   let address = ''
 
   addresses.forEach(addr => {
-    console.log('ADDRESS: ', addr, paramsString, paramsString.includes(addr));
     if (paramsString.includes(addr)) {
       address = addr
     }
@@ -101,6 +100,13 @@ export function isSolanaChain(chain: string) {
  */
 export function isStacksChain(chain: string) {
   return chain.includes('stacks')
+}
+
+/**
+ * Check if chain is part of POLKADOT standard
+ */
+export function isPolkadotChain(chain: string) {
+  return chain.includes('polkadot')
 }
 
 /**

@@ -5,13 +5,14 @@ import SessionProposalChainCard from '@/components/SessionProposalChainCard'
 import ModalStore from '@/store/ModalStore'
 import { cosmosAddresses } from '@/utils/CosmosWalletUtil'
 import { eip155Addresses } from '@/utils/EIP155WalletUtil'
-import { isCosmosChain, isEIP155Chain, isSolanaChain, isStacksChain } from '@/utils/HelperUtil'
+import { polkadotAddresses } from '@/utils/PolkadotWalletUtil'
+import { isCosmosChain, isEIP155Chain, isSolanaChain, isStacksChain, isPolkadotChain } from '@/utils/HelperUtil'
 import { solanaAddresses } from '@/utils/SolanaWalletUtil'
 import { stacksAddresses } from '@/utils/StacksWalletUtil'
 import { signClient } from '@/utils/WalletConnectUtil'
 import { Button, Divider, Modal, Text } from '@nextui-org/react'
 import { SessionTypes } from '@walletconnect/types'
-import { ERROR } from '@walletconnect/utils'
+import { getSdkError } from '@walletconnect/utils'
 import { Fragment, useState } from 'react'
 
 export default function SessionProposalModal() {
@@ -78,7 +79,7 @@ export default function SessionProposalModal() {
     if (proposal) {
       await signClient.reject({
         id,
-        reason: ERROR.JSONRPC_REQUEST_METHOD_REJECTED.format()
+        reason: getSdkError('USER_REJECTED_METHODS')
       })
     }
     ModalStore.close()
@@ -117,6 +118,15 @@ export default function SessionProposalModal() {
       return (
         <ProposalSelectSection
           addresses={stacksAddresses}
+          selectedAddresses={selectedAccounts[chain]}
+          onSelect={onSelectAccount}
+          chain={chain}
+        />
+      )
+    } else if (isPolkadotChain(chain)) {
+      return (
+        <ProposalSelectSection
+          addresses={polkadotAddresses}
           selectedAddresses={selectedAccounts[chain]}
           onSelect={onSelectAccount}
           chain={chain}

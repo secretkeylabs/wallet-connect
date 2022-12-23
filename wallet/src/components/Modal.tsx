@@ -3,6 +3,7 @@ import SessionProposalModal from '@/views/SessionProposalModal'
 import SessionSendTransactionModal from '@/views/SessionSendTransactionModal'
 import SessionSignCosmosModal from '@/views/SessionSignCosmosModal'
 import SessionRequestModal from '@/views/SessionSignModal'
+import SessionSignPolkadotModal from '@/views/SessionSignPolkadotModal'
 import SessionSignSolanaModal from '@/views/SessionSignSolanaModal'
 import SessionSignStacksModal from '@/views/SessionSignStacksModal'
 import SessionSignTypedDataModal from '@/views/SessionSignTypedDataModal'
@@ -22,6 +23,7 @@ export default function Modal() {
       {view === 'SessionUnsuportedMethodModal' && <SessionUnsuportedMethodModal />}
       {view === 'SessionSignCosmosModal' && <SessionSignCosmosModal />}
       {view === 'SessionSignSolanaModal' && <SessionSignSolanaModal />}
+      {view === 'SessionSignPolkadotModal' && <SessionSignPolkadotModal />}
       {view === 'SessionSignStacksModal' && <SessionSignStacksModal />}
     </NextModal>
   )

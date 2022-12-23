@@ -1,6 +1,7 @@
 import { COSMOS_SIGNING_METHODS } from '@/data/COSMOSData'
 import { EIP155_SIGNING_METHODS } from '@/data/EIP155Data'
 import { SOLANA_SIGNING_METHODS } from '@/data/SolanaData'
+import { POLKADOT_SIGNING_METHODS } from '@/data/PolkadotData'
 import ModalStore from '@/store/ModalStore'
 import { signClient } from '@/utils/WalletConnectUtil'
 import { SignClientTypes } from '@walletconnect/types'
@@ -56,8 +57,12 @@ export default function useWalletConnectEventsManager(initialized: boolean) {
         case STACKS_DEFAULT_METHODS.SIGN_MESSAGE:
         case STACKS_DEFAULT_METHODS.STX_TRANSFER:
         case STACKS_DEFAULT_METHODS.CONTRACT_CALL:
+        case STACKS_DEFAULT_METHODS.CONTRACT_DEPLOY:
           return ModalStore.open('SessionSignStacksModal', { requestEvent, requestSession })
 
+        case POLKADOT_SIGNING_METHODS.POLKADOT_SIGN_MESSAGE:
+        case POLKADOT_SIGNING_METHODS.POLKADOT_SIGN_TRANSACTION:
+          return ModalStore.open('SessionSignPolkadotModal', { requestEvent, requestSession })
         default:
           return ModalStore.open('SessionUnsuportedMethodModal', { requestEvent, requestSession })
       }

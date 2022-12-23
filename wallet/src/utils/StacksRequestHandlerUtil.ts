@@ -2,7 +2,7 @@ import { getWalletAddressFromParams } from '@/utils/HelperUtil'
 import { stacksAddresses, stacksWallets } from '@/utils/StacksWalletUtil'
 import { formatJsonRpcError, formatJsonRpcResult } from '@json-rpc-tools/utils'
 import { SignClientTypes } from '@walletconnect/types'
-import { ERROR } from '@walletconnect/utils'
+import { getSdkError } from '@walletconnect/utils'
 
 import {
   STACKS_DEFAULT_METHODS
@@ -30,13 +30,17 @@ export async function approveStacksRequest(
 
       return formatJsonRpcResult(id, contractCallTxn)
 
+    case STACKS_DEFAULT_METHODS.CONTRACT_DEPLOY:
+      const contractDeployTxn = await wallet.contractDeploy(request.params)
+
+      return formatJsonRpcResult(id, contractDeployTxn)
     default:
-      throw new Error(ERROR.UNKNOWN_JSONRPC_METHOD.format().message)
+      throw new Error(getSdkError('INVALID_METHOD').message)
   }
 }
 
 export function rejectStacksRequest(request: SignClientTypes.EventArguments['session_request']) {
   const { id } = request
 
-  return formatJsonRpcError(id, ERROR.JSONRPC_REQUEST_METHOD_REJECTED.format().message)
+  return formatJsonRpcError(id, getSdkError('USER_REJECTED_METHODS').message)
 }
