@@ -11,6 +11,7 @@ import {
   createAssetInfo,
   makeStandardFungiblePostCondition,
 } from "@stacks/transactions";
+import { verifyMessageSignatureRsv } from "@stacks/encryption";
 
 /* global BigInt */
 
@@ -99,14 +100,14 @@ function App() {
         },
       });
 
-      //dummy check of signature
-      const valid = result.signature === message + "+SIGNED";
+      const signature = result.signature;
+      const valid = verifyMessageSignatureRsv({ message, address, signature });
 
       setResult({
         method: "stacks_signMessage",
         address,
-        valid,
-        result: result.signature,
+        valid: valid,
+        result: signature,
       });
     } catch (error) {
       throw new Error(error);
