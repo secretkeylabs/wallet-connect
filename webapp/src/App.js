@@ -248,6 +248,17 @@ function App() {
     }
   };
 
+  const connect = async (c) => {
+    try {
+      await handleConnect(c)
+    } catch(error) {
+      if(error.code == 5002) { // Code for user rejected methods.
+        QRCodeModal.close()
+      }
+    }
+  }
+
+
   return (
     <div className="main">
       <h1>Wallet Connect with Stacks</h1>
@@ -261,7 +272,11 @@ function App() {
                 {c}{" "}
                 <button
                   disabled={!client}
-                  onClick={async () => await handleConnect(c)}
+                  onClick={ 
+                     async () =>  { 
+                      connect(c);
+                    } 
+                  }
                 >
                   connect
                 </button>
