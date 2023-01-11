@@ -12,6 +12,11 @@ import {
   makeStandardFungiblePostCondition,
 } from "@stacks/transactions";
 import { verifyMessageSignatureRsv } from "@stacks/encryption";
+import {
+  clearLocalStorage,
+  loadFromLocalStorage,
+  saveToLocalStorage,
+} from "./utils";
 
 /* global BigInt */
 
@@ -31,8 +36,8 @@ function App() {
     const f = async () => {
       const c = await Client.init({
         logger: "debug",
-        // relayUrl: 'wss://relay.walletconnect.com',
-        projectId: "", // register at WalletConnect and create one for yourself - https://cloud.walletconnect.com/
+        relayUrl: "wss://relay.walletconnect.com",
+        projectId: "a450e71d8320703f06157f0ce4e7188a", // register at WalletConnect and create one for yourself - https://cloud.walletconnect.com/
         // you need to have a valid ID or the app will not start
         metadata: {
           name: "WalletConnect with Stacks",
@@ -47,6 +52,12 @@ function App() {
 
     if (client === undefined) {
       f();
+    }
+    if (loadFromLocalStorage("session")) {
+      setSession(loadFromLocalStorage("session"));
+    }
+    if (loadFromLocalStorage("chain")) {
+      setChain(loadFromLocalStorage("chain"));
     }
   }, [client]);
 
@@ -75,10 +86,11 @@ function App() {
       });
     }
 
-    const session = await approval();
-    setSession(session);
+    const sessn = await approval();
+    setSession(sessn);
     setChain(chain);
-
+    saveToLocalStorage("session", sessn);
+    saveToLocalStorage("chain", chain);
     QRCodeModal.close();
   };
 
@@ -100,14 +112,19 @@ function App() {
         },
       });
 
+      const publicKey = result.publicKey;
       const signature = result.signature;
-      const valid = verifyMessageSignatureRsv({ message, address, signature });
+      const valid = verifyMessageSignatureRsv({
+        message,
+        publicKey,
+        signature,
+      });
 
       setResult({
         method: "stacks_signMessage",
         address,
         valid: valid,
-        result: signature,
+        result: result,
       });
     } catch (error) {
       throw new Error(error);
@@ -248,16 +265,26 @@ function App() {
     }
   };
 
+  const disconnect = async () => {
+    clearLocalStorage();
+    await client.pairing.delete(session.topic, {
+      code: 100,
+      message: "deleting",
+    });
+    setSession(undefined);
+    setChain(undefined);
+  };
+
   const connect = async (c) => {
     try {
-      await handleConnect(c)
-    } catch(error) {
-      if(error.code == 5002) { // Code for user rejected methods.
-        QRCodeModal.close()
+      await handleConnect(c);
+    } catch (error) {
+      if (error.code == 5002) {
+        // Code for user rejected methods.
+        QRCodeModal.close();
       }
     }
-  }
-
+  };
 
   return (
     <div className="main">
@@ -272,11 +299,9 @@ function App() {
                 {c}{" "}
                 <button
                   disabled={!client}
-                  onClick={ 
-                     async () =>  { 
-                      connect(c);
-                    } 
-                  }
+                  onClick={async () => {
+                    connect(c);
+                  }}
                 >
                   connect
                 </button>
@@ -308,6 +333,9 @@ function App() {
             <button onClick={async () => await handleContractDeploy()}>
               Deploy Contract
             </button>
+          </div>
+          <div>
+            <button onClick={async () => disconnect()}>Disconnect</button>
           </div>
         </div>
       )}
