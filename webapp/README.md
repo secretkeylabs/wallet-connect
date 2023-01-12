@@ -1,4 +1,4 @@
-Wallet Connect v2.0-rc for Stacks 
+Wallet Connect v2.0 for Stacks 
 =================================
 
 The goal of this tutorial is to show the **minimal** approach to connect Wallet Connect (and Stacks) with your app.
@@ -43,11 +43,11 @@ We'll take you through these steps:
 1. Install WalletConnect
 
     ```sh
-    yarn add @walletconnect/utils@2.0.0-rc.2
-    yarn add @walletconnect/types@2.0.0-rc.2
-    yarn add @walletconnect/sign-client@2.0.0-rc.2
-    yarn add @walletconnect/encoding@^1.0.1
-    yarn add @walletconnect/qrcode-modal@^1.7.8
+    yarn add @walletconnect/utils
+    yarn add @walletconnect/types
+    yarn add @walletconnect/sign-client
+    yarn add @walletconnect/encoding
+    yarn add @walletconnect/qrcode-modal
     ```
 
 2. Setup Wallet Conenct client
@@ -81,9 +81,9 @@ We'll take you through these steps:
                 projectId: 'yourProjectID', // register at WalletConnect and create one for yourself - https://cloud.walletconnect.com/
                 // you need to have a valid ID or the app will not start
                 metadata: {
-                    name: "WalletConnect with Stacks",
-                    description: "WalletConnect & Stacks",
-                    url: "https://walletconnect.com/",
+                    name: "My Stacks WalletConnect App",
+                    description: "Awesome application",
+                    url: "https://your_app_url.com/",
                     icons: ["https://avatars.githubusercontent.com/u/37784886"],
                 },
             });
@@ -103,7 +103,7 @@ We have the Client ready, nowe we need to connect our app to our wallet - establ
 
 We do that by providing selected Network's `chainID` to Wallet Connect client.
 
-1. Find your network(-s) `chainID` on [ChainList](https://chainlist.org/) and/or [CAIP-APIP](https://github.com/pedrouid/caip-api/blob/master/src/config/)
+1. Find your network `chainID` on [ChainList](https://chainlist.org/) and/or [CAIP-APIP](https://github.com/pedrouid/caip-api/blob/master/src/config/)
 
     ChainID is in a form of a string containing network name and a number, ex. `foo:123`. You can find both on ChainLink and CAIP-API.
 
@@ -171,7 +171,7 @@ We do that by providing selected Network's `chainID` to Wallet Connect client.
     }
 
     .box {
-        background: #ff5fb7;
+        background: #5f92ff;
         padding: 0.5rem 1rem;
         margin: 0 0 1rem 0;
     }
@@ -213,7 +213,7 @@ We do that by providing selected Network's `chainID` to Wallet Connect client.
     - stacks_contractCall - contract call (with post conditions)
     - stacks_contractDeploy - contract deploy
 
-    We pass these method names as array and keep `events` empty - depending on the wallet, the names MAY (and most likely WILL) be different! They must match what the wallet supports.
+    We pass these method names as array and keep `events` empty - They must match what the wallet supports.
 
     In our case it looks like this:
 
@@ -371,7 +371,7 @@ If you scan the qr code with our example Wallet, it'll show the list of methods 
     const address = session.namespaces.stacks.accounts[0].split(':')[2];
     ```
 
-    Another thing is Walelt Connect as a communication layer has some limitations we have to deal with - it uses JSON serialization...and because of that: works most of the times, except for `Stacks CV values` that uses `bigint` :)
+    Another thing is Walelt Connect as a communication layer has some limitations we have to deal with - it uses JSON serialization...and because of that: works most of the times, except for `Stacks CV values` that uses `bigint`.
 
     For that reason we need a hack, add this to your `src/App.js` (after imports):
 
@@ -559,7 +559,7 @@ If you scan the qr code with our example Wallet, it'll show the list of methods 
 
     Luckily, thanks to the `BigInt` defined hacks above - we can use Stacks libraries to build the transaction as we normally would.
 
-    In our case we want to `transfer` some fake `MiamiCoin` tokens.
+    In our case we want to `transfer` some dummy `MiamiCoin` tokens.
 
     First we figure out contract related details, like the contract's name and account address. We also need the token's name - it's hidden in the contract's code (you can see it through explorer).
     
