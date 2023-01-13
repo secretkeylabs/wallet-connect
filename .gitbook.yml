@@ -3,3 +3,7 @@ root: ./
 structure:
   readme: ./docs/INTRODUCTION.md
   summary: ./docs/SUMMARY.md
+
+redirects:
+  web: webapp/README.md
+  reference: docs/API_REFERENCE.md

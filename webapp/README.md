@@ -1,18 +1,16 @@
-Wallet Connect v2.0 for Stacks 
+Wallet Connect for Stacks 
 =================================
 
 The goal of this tutorial is to show the **minimal** approach to connect Wallet Connect (and Stacks) with your app.
 
-We won't be introducing "best practices" or anything "complicated" - just a single component with all that's necessary :)
-
 We'll take you through these steps:
 
-1. Create React app and remove unnecessary stuff
-3. Create Wallet Connect client
-4. Establish Wallet Connect Session
-5. Make some [Wallet](../wallet/README.md) calls via Wallet Connect
+1. Create React app
+2. Create the Wallet Connect client
+3. Establish a Wallet Connect Session
+4. Make wallet requests via Wallet Connect
 
-# Create React app and remove unnecessary stuff
+# Create React app
 
 1. Create a React project
 
@@ -38,9 +36,9 @@ We'll take you through these steps:
     export default App;
     ```
 
-# Create Wallet Connect client
+# Create the Wallet Connect client
 
-1. Install WalletConnect
+1. Install WalletConnect dependencies
 
     ```sh
     yarn add @walletconnect/utils
@@ -50,7 +48,7 @@ We'll take you through these steps:
     yarn add @walletconnect/qrcode-modal
     ```
 
-2. Setup Wallet Conenct client
+2. Setup Wallet Connect client
 
     We want to store the Client "globally" and set it up as soon as possible, so:
 
@@ -97,7 +95,7 @@ We'll take you through these steps:
     }, [client]);
     ```
 
-# Establish Wallet Connect Session
+# Establish a Wallet Connect Session
 
 We have the Client ready, nowe we need to connect our app to our wallet - establish a Session.
 
@@ -113,7 +111,7 @@ We do that by providing selected Network's `chainID` to Wallet Connect client.
     # Mainnet
     "stacks:1"
 
-    #Testnet
+    # Testnet
     "stacks:2147483648"
     ```
 
@@ -204,14 +202,16 @@ We do that by providing selected Network's `chainID` to Wallet Connect client.
     - what are the supported chains?
 
     Chains are simple - it's Stacks, so we simply pass the selected chain (full chainID).
-    Events and methods are wallet dependant.
+    Events and methods are wallet dependent.
 
-    [Our dummy wallet](../wallet/README.md) doesn't support events and supports only 4 example methods:
+    [Our dummy wallet](https://github.com/secretkeylabs/wallet-connect/tree/master/wallet) doesn't support events and supports only 4 example methods:
 
     - stacks_signMessage - for signing a message with wallet users private key
     - stacks_stxTransfer - simple STX transfer
     - stacks_contractCall - contract call (with post conditions)
     - stacks_contractDeploy - contract deploy
+
+    See [API reference](../docs/API_REFERENCE.md) for complete list.
 
     We pass these method names as array and keep `events` empty - They must match what the wallet supports.
 
@@ -303,11 +303,13 @@ We do that by providing selected Network's `chainID` to Wallet Connect client.
     };
     ```
 
-# Make some [Wallet](../wallet/README.md) calls via Wallet Connect
+# Make some wallet calls via Wallet Connect
 
 At this point, when you click `connect` - you should be presented with Wallet Connect QR Code modal.
 
-If you scan the qr code with our example Wallet, it'll show the list of methods we've passed. Approve it and you'll see the `connect` buttons go away - indicatin there's nothing to connect to anymore.
+If you scan the QR code with Xverse wallet, you will see a prompt to approve the connection request.
+
+If you scan the QR code with the [example wallet](../wallet/README.md), it'll show the list of methods we've passed. Approve it and you'll see the `connect` buttons go away - indicating there's nothing to connect to anymore.
 
 1. Show available methods, add this to `src/App.js` render method:
 
@@ -336,7 +338,7 @@ If you scan the qr code with our example Wallet, it'll show the list of methods 
 
     We'll cover each handler individually building up complexity.
     
-    You can read more about available Stacks transactions [here](https://github.com/stacks-network/stacks-transactions-js).
+    You can read more about available Stacks transactions [here](https://github.com/hirosystems/stacks.js/tree/master/packages/transactions).
 
 3. A little theory:
 
@@ -346,13 +348,13 @@ If you scan the qr code with our example Wallet, it'll show the list of methods 
 
     The App is just a client and simply sends some requests.
 
-    So - everything we do is RPC-like request that goes through "rpc client" like this:
+    So - everything we do is RPC-like request that goes through "RPC client" like this:
 
     ```javascript
     const request = {
         method: 'stacks_signMessage', //here you provide the method you want to use
         params: { //and here you pass the arguments
-            pubkey: address, //XXX: This one is required
+            pubkey: address, 
             message, //this is our custom payload
         },
     };
@@ -363,7 +365,7 @@ If you scan the qr code with our example Wallet, it'll show the list of methods 
     });
     ```
 
-    The `request` itself is heavily dependant on what Wallet requires from us!
+    The `request` itself is heavily dependent on what Wallet requires from us!
 
     We'll also need an `address` and we can get it from the `session` like this:
 
@@ -371,9 +373,9 @@ If you scan the qr code with our example Wallet, it'll show the list of methods 
     const address = session.namespaces.stacks.accounts[0].split(':')[2];
     ```
 
-    Another thing is Walelt Connect as a communication layer has some limitations we have to deal with - it uses JSON serialization...and because of that: works most of the times, except for `Stacks CV values` that uses `bigint`.
+    Another thing is Walelt Connect as a communication layer has some limitations we have to deal with - it uses JSON serialization internally. Because of this, `ClarityValues` that utilize `bigint` will not work out of the box. 
 
-    For that reason we need a hack, add this to your `src/App.js` (after imports):
+    For that reason we need a hack to allow `bigint` to be serialized as JSON. Add this to your `src/App.js` (after imports):
 
     ```javascript
     /* global BigInt */
@@ -402,6 +404,7 @@ If you scan the qr code with our example Wallet, it'll show the list of methods 
         standardPrincipalCV,
         createAssetInfo,
         makeStandardFungiblePostCondition,
+        verifyMessageSignatureRsv,
     } from '@stacks/transactions';
     ```
 
@@ -446,14 +449,18 @@ If you scan the qr code with our example Wallet, it'll show the list of methods 
                 request: {
                     method: 'stacks_signMessage',
                     params: {
-                        pubkey: address, //XXX: This one is required
+                        pubkey: address, 
                         message,
                     },
                 },
             });
 
-            //dummy check of signature
-            const valid = result.signature === message + '+SIGNED';
+            //verify the signature
+            const valid = verifyMessageSignatureRsv({
+                message,
+                publicKey,
+                signature,
+            });
 
             setResult({
                 method: 'stacks_signMessage',
@@ -467,9 +474,9 @@ If you scan the qr code with our example Wallet, it'll show the list of methods 
     };
     ```
 
-    Connect your wallet and test it :)
+    Connect your wallet and test it.
 
-    W're trying to mimic Stacks APIs as much as possible, so looking into [this](https://github.com/stacks-network/stacks-transactions-js) should give you a pretty good idea on how to create any other calls yourself!
+    The API strives to be as similar to the native Stacks API as possible. So looking into [Stacks Connect](https://github.com/hirosystems/connect/tree/main/packages/connect) should give you a good idea on how to create any other calls yourself.
 
 6. Contract Deploy:
 
@@ -486,8 +493,8 @@ If you scan the qr code with our example Wallet, it'll show the list of methods 
                 request: {
                     method: 'stacks_contractDeploy',
                     params: {
-                        pubkey: address, //XXX: This one is required
-                        contractName: 'my_contract_name_3', //XXX: CHange the contract name!
+                        pubkey: address, 
+                        contractName: 'my_contract_name_3', //XXX: Change the contract name!
                         codeBody: `
     ;; hello-world
     ;; <add a description here>
@@ -521,7 +528,7 @@ If you scan the qr code with our example Wallet, it'll show the list of methods 
 
 7. Transfer STX:
 
-    Can you can see the pattern? :D
+    Can you can see the pattern? 
 
     ```javascript
     const handleTransferSTX = async () => {
@@ -534,7 +541,7 @@ If you scan the qr code with our example Wallet, it'll show the list of methods 
                 request: {
                     method: 'stacks_stxTransfer',
                     params: {
-                        pubkey: address, //XXX: This one is required
+                        pubkey: address, 
                         recipient: 'ST3Q85SVTW7J3XQ38V7V88653YN90728NMM46J2ZE',
                         amount: 12,
                     },
@@ -559,11 +566,11 @@ If you scan the qr code with our example Wallet, it'll show the list of methods 
 
     Luckily, thanks to the `BigInt` defined hacks above - we can use Stacks libraries to build the transaction as we normally would.
 
-    In our case we want to `transfer` some dummy `MiamiCoin` tokens.
+    In our case we want to `transfer` some dummy `ExampleCoin` tokens.
 
     First we figure out contract related details, like the contract's name and account address. We also need the token's name - it's hidden in the contract's code (you can see it through explorer).
     
-    Then we build the `PostConditions` array - we want it to `transfer exactly 13 tokens` (our "order amount").
+    Then we build the `PostConditions` array - we want it to `transfer exactly 1000 tokens` (our "order amount").
 
     The last thing is to simply combine it all and pass as `request`.
 
@@ -571,11 +578,11 @@ If you scan the qr code with our example Wallet, it'll show the list of methods 
     const handleContractCall = async () => {
         const address = session.namespaces.stacks.accounts[0].split(':')[2];
 
-        const contract = 'ST24YYAWQ4DK4RKCKK1RP4PX0X5SCSXTWQXFGVCVY.fake-miamicoin-token-V2';
+        const contract = 'ST24YYAWQ4DK4RKCKK1RP4PX0X5SCSXTWQXFGVCVY.example-token';
         const [ contractAddress, contractName ] = contract.split('.');
-        const tokenName = 'miamicoin'; //XXX: It's hidden in the contract's code but it's not hard to find.
+        const tokenName = 'examplecoin'; 
 
-        const orderAmount = 13 * 10**6; //13 miamicoin
+        const orderAmount = 1000; 
         const addressTo = 'ST3Q85SVTW7J3XQ38V7V88653YN90728NMM46J2ZE';
 
         // Define post conditions
@@ -600,7 +607,7 @@ If you scan the qr code with our example Wallet, it'll show the list of methods 
                 request: {
                     method: 'stacks_contractCall',
                     params: {
-                        pubkey: address, //XXX: This one is required
+                        pubkey: address, 
                         postConditions,
                         contractAddress: contractAddress,
                         contractName: contractName,
