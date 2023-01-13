@@ -4,7 +4,7 @@
 
 ## Web
 
-* [Quick Start](./webapp/README.md)
+* [Quick Start](/webapp/README.md)
 * [Sample App](https://github.com/secretkeylabs/wallet-connect)
 
 ## Mobile
