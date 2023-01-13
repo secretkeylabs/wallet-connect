@@ -5,5 +5,6 @@ structure:
   summary: ./docs/SUMMARY.md
 
 redirects:
-  web: webapp/README.md
-  reference: docs/API_REFERENCE.md
+  web_quickstart: webapp/README.md
+  mobile_quickstart: docs/MOBILE.md
+  api_reference: docs/API_REFERENCE.md
