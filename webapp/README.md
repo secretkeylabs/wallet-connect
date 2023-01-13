@@ -96,13 +96,11 @@ We'll take you through the following steps:
 
 ## Establish a Wallet Connect Session
 
-We have the Client ready, nowe we need to connect our app to our wallet - establish a Session.
+We have the Client ready, now we need to connect our app to our wallet - establish a Session.
 
 We do that by providing selected Network's `chainID` to Wallet Connect client.
 
-1. Find your network `chainID` on [ChainList](https://chainlist.org/) and/or [CAIP-APIP](https://github.com/pedrouid/caip-api/blob/master/src/config/)
-
-    ChainID is in a form of a string containing network name and a number, ex. `foo:123`. You can find both on ChainLink and CAIP-API.
+1. ChainID is in a form of a string containing network name and a number, ex. `foo:123`. You can find a list of EVM ChainIDs on [ChainList](https://chainlist.org/).
 
     In case of Stacks, the chain IDs you're interested in are:
 
