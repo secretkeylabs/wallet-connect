@@ -1,16 +1,15 @@
-Wallet Connect for Stacks 
-=================================
+# Wallet Connect for Stacks 
 
 The goal of this tutorial is to show the **minimal** approach to connect Wallet Connect (and Stacks) with your app.
 
-We'll take you through these steps:
+We'll take you through the following steps:
 
 1. Create React app
 2. Create the Wallet Connect client
 3. Establish a Wallet Connect Session
 4. Make wallet requests via Wallet Connect
 
-# Create React app
+## Create React app
 
 1. Create a React project
 
@@ -36,7 +35,7 @@ We'll take you through these steps:
     export default App;
     ```
 
-# Create the Wallet Connect client
+## Create the Wallet Connect client
 
 1. Install WalletConnect dependencies
 
@@ -95,7 +94,7 @@ We'll take you through these steps:
     }, [client]);
     ```
 
-# Establish a Wallet Connect Session
+## Establish a Wallet Connect Session
 
 We have the Client ready, nowe we need to connect our app to our wallet - establish a Session.
 
@@ -303,7 +302,7 @@ We do that by providing selected Network's `chainID` to Wallet Connect client.
     };
     ```
 
-# Make some wallet calls via Wallet Connect
+## Make some wallet calls via Wallet Connect
 
 At this point, when you click `connect` - you should be presented with Wallet Connect QR Code modal.
 
