@@ -100,7 +100,7 @@ We have the Client ready, now we need to connect our app to our wallet - establi
 
 We do that by providing selected Network's `chainID` to Wallet Connect client.
 
-1. ChainID is in a form of a string containing network name and a number, ex. `foo:123`. You can find a list of EVM ChainIDs on [ChainList](https://chainlist.org/).
+1. ChainID is in a form of a string containing network name and a number, ex. `foo:123`. The Stacks chain ID is defined on [ChainAgnostic](https://github.com/ChainAgnostic/namespaces/blob/main/stacks/caip10.md). 
 
     In case of Stacks, the chain IDs you're interested in are:
 
