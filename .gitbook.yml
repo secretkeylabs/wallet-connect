@@ -3,8 +3,3 @@ root: ./
 structure:
   readme: ./docs/INTRODUCTION.md
   summary: ./docs/SUMMARY.md
-
-redirects:
-  web_quickstart: webapp/README.md
-  mobile_quickstart: docs/MOBILE.md
-  api_reference: docs/API_REFERENCE.md

@@ -4,13 +4,13 @@
 
 ## Web
 
-* [Quick Start](/web_quickstart)
+* [Quick Start](./webapp/README.md)
 * [Sample App](https://github.com/secretkeylabs/wallet-connect)
 
 ## Mobile
 
-* [Quick Start](/mobile_quickstart)
+* [Quick Start](./docs/MOBILE.md)
 
 ## Reference
 
-* [JSON API](/api_reference)
+* [JSON API](./docs/API_REFERENCE.md)
