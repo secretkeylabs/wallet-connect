@@ -76,6 +76,8 @@ const result = await client.request({
     },
   },
 });
+
+const txId = result.txId;
 ```
 
 
@@ -129,10 +131,12 @@ const result = await client.request({
     params: {
       pubkey: address, 
       recipient: "SP3F7GQ48JY59521DZEE6KABHBF4Q33PEYJ823ZXQ",
-      amount: 1000,
+      amount: BigInt(1000),
     },
   },
 });
+
+const txId = result.txId;
 ```
 
 
@@ -162,6 +166,7 @@ Version of parameter format.
 ### Example:
 
 ```javascript
+const message = "loremipsum";
 const result = await client.request({
   chainId: chain,
   topic: session.topic,
@@ -169,9 +174,17 @@ const result = await client.request({
     method: "stacks_signMessage",
     params: {
       pubkey: address,
-      message: "loremipsum",
+      message: message,
     },
   },
+});
+
+const publicKey = result.publicKey;
+const signature = result.signature;
+const valid = verifyMessageSignatureRsv({
+  message,
+  publicKey,
+  signature,
 });
 ```
 
@@ -233,4 +246,6 @@ const result = await client.request({
     },
   },
 });
+
+const txId = result.txId;
 ```

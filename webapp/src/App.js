@@ -188,7 +188,7 @@ function App() {
           params: {
             pubkey: address, //XXX: This one is required
             recipient: recip,
-            amount: 12,
+            amount: BigInt(1000),
           },
         },
       });

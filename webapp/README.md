@@ -542,7 +542,7 @@ If you scan the QR code with the [example wallet](../wallet/README.md), it'll sh
                     params: {
                         pubkey: address, 
                         recipient: 'ST3Q85SVTW7J3XQ38V7V88653YN90728NMM46J2ZE',
-                        amount: 12,
+                        amount: BigInt(1000),
                     },
                 },
             });
