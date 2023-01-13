@@ -101,7 +101,7 @@ The STX address of the recipient.
 
 Amount of STX tokens to transfer in microstacks.
 
-**`memo`** _required_ - `string`
+**`memo`** _optional_ - `string`
 
 Memo string to be included with the transfer transaction.
 
@@ -152,7 +152,7 @@ The stacks address of sender.
 
 **`message`** _required_ - `string`
 
-Message to be signed.
+Message payload to be signed.
 
 **`version`** _optional_ - `string`
 
@@ -194,7 +194,7 @@ The stacks address of sender.
 
 The name the contract is to be deployed as.
 
-**`codeBoy`** _required_ - `string`
+**`codeBody`** _required_ - `string`
 
 Body of the contract source code.
 
