@@ -177,8 +177,8 @@ function App() {
     const address = session.namespaces.stacks.accounts[0].split(":")[2];
     const isMainnet = chain == chains[0];
     const recip = isMainnet
-      ? "SPZ3SYSA0075FEB41MQR1XMC9HAGTYN2J0BE4F4E"
-      : "ST3Q85SVTW7J3XQ38V7V88653YN90728NMM46J2ZE";
+      ? "SP34AVN2XCNQKYKR4KB3M1NGD6ECMHFDSWM42517E"
+      : "ST34AVN2XCNQKYKR4KB3M1NGD6ECMHFDSWN439CGE";
     try {
       const result = await client.request({
         chainId: chain,
@@ -189,6 +189,7 @@ function App() {
             pubkey: address, //XXX: This one is required
             recipient: recip,
             amount: BigInt(1000),
+            memo: "example transfer",
           },
         },
       });
@@ -216,8 +217,8 @@ function App() {
 
     const orderAmount = 13 * 10 ** 6; //13 miamicoin
     const addressTo = isMainnet
-      ? "SPZ3SYSA0075FEB41MQR1XMC9HAGTYN2J0BE4F4E"
-      : "ST3Q85SVTW7J3XQ38V7V88653YN90728NMM46J2ZE";
+      ? "SP34AVN2XCNQKYKR4KB3M1NGD6ECMHFDSWM42517E"
+      : "ST34AVN2XCNQKYKR4KB3M1NGD6ECMHFDSWN439CGE";
 
     // Define post conditions
     const postConditions = [];
