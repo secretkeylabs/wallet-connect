@@ -24,7 +24,13 @@ BigInt.prototype.toJSON = function () {
   return this.toString();
 };
 
-const chains = ["stacks:1", "stacks:2147483648"];
+const chains = [
+  "stacks:1",
+  "stacks:2147483648",
+  "bip122:000000000019d6689c085ae165831e93",
+  "bip122:000000000933ea01ad0ee984209779ba",
+];
+//const btcChains = ["bip122:000000000019d6689c085ae165831e93"];
 
 function App() {
   const [client, setClient] = useState(undefined);
@@ -63,35 +69,91 @@ function App() {
 
   const handleConnect = async (chain) => {
     setChain(undefined);
-
-    const { uri, approval } = await client.connect({
-      pairingTopic: undefined,
-      requiredNamespaces: {
-        stacks: {
-          methods: [
-            "stacks_signMessage",
-            "stacks_stxTransfer",
-            "stacks_contractCall",
-            "stacks_contractDeploy",
-          ],
-          chains: [chain],
-          events: [],
+    if (chain.includes("stacks")) {
+      const { uri, approval } = await client.connect({
+        pairingTopic: undefined,
+        requiredNamespaces: {
+          stacks: {
+            methods: [
+              "stacks_signMessage",
+              "stacks_stxTransfer",
+              "stacks_contractCall",
+              "stacks_contractDeploy",
+            ],
+            chains: [chain],
+            events: [],
+          },
         },
-      },
-    });
-
-    if (uri) {
-      QRCodeModal.open(uri, () => {
-        console.log("QR Code Modal closed");
       });
-    }
 
-    const sessn = await approval();
-    setSession(sessn);
-    setChain(chain);
-    saveToLocalStorage("session", sessn);
-    saveToLocalStorage("chain", chain);
-    QRCodeModal.close();
+      if (uri) {
+        QRCodeModal.open(uri, () => {
+          console.log("QR Code Modal closed");
+        });
+      }
+
+      const sessn = await approval();
+      setSession(sessn);
+      setChain(chain);
+      saveToLocalStorage("session", sessn);
+      saveToLocalStorage("chain", chain);
+      QRCodeModal.close();
+    } else {
+      const { uri, approval } = await client.connect({
+        pairingTopic: undefined,
+        requiredNamespaces: {
+          bip: {
+            methods: ["btc_transfer"],
+            chains: [chain],
+            events: [],
+          },
+        },
+      });
+
+      if (uri) {
+        QRCodeModal.open(uri, () => {
+          console.log("QR Code Modal closed");
+        });
+      }
+
+      const sessn = await approval();
+      setSession(sessn);
+      setChain(chain);
+      saveToLocalStorage("session", sessn);
+      saveToLocalStorage("chain", chain);
+      QRCodeModal.close();
+    }
+  };
+
+  const handleBtcTransfer = async () => {
+    try {
+      const address = session.namespaces.bip.accounts[0].split(":")[2];
+      const isMainnet = chain == chains[2];
+      const recipient = isMainnet
+        ? "3DP8pe2zJUcBezD35cLyZJGdbDwNYwBNtb"
+        : "2NAm1LPPHQQ8AaLhXSYWrpApoCKcyjNJsjf";
+      const result = await client.request({
+        chainId: chain,
+        topic: session.topic,
+        request: {
+          method: "btc_transfer",
+          params: {
+            pubkey: address, //XXX: This one is required
+            recipient,
+            amount: BigInt(6000), //the amount is in sats
+          },
+        },
+      });
+
+      setResult({
+        method: "btc_transfer",
+        address,
+        valid: true,
+        result: result.txId,
+      });
+    } catch (e) {
+      throw new Error(e);
+    }
   };
 
   const handleSignMessage = async () => {
@@ -312,7 +374,7 @@ function App() {
         </div>
       )}
 
-      {session && (
+      {session && session.namespaces.stacks && (
         <div className="box">
           <h3>Wallet connected!</h3>
           <div>
@@ -333,6 +395,20 @@ function App() {
           <div>
             <button onClick={async () => await handleContractDeploy()}>
               Deploy Contract
+            </button>
+          </div>
+          <div>
+            <button onClick={async () => disconnect()}>Disconnect</button>
+          </div>
+        </div>
+      )}
+
+      {session && session.namespaces.bip && (
+        <div className="box">
+          <h3>Wallet connected!</h3>
+          <div>
+            <button onClick={async () => await handleBtcTransfer()}>
+              Transfer btc
             </button>
           </div>
           <div>
