@@ -129,9 +129,28 @@ function App() {
     try {
       const address = session.namespaces.bip.accounts[0].split(":")[2];
       const isMainnet = chain == chains[2];
-      const recipient = isMainnet
-        ? "3DP8pe2zJUcBezD35cLyZJGdbDwNYwBNtb"
-        : "2NAm1LPPHQQ8AaLhXSYWrpApoCKcyjNJsjf";
+      const recipients = isMainnet
+        ? [
+            {
+              address: "3DP8pe2zJUcBezD35cLyZJGdbDwNYwBNtb",
+              amountSats: "20000",
+            },
+            {
+              address: "3Codr66EYyhkhWy1o2RLmrER7TaaHmtrZe",
+              amountSats: "30000",
+            },
+          ]
+        : [
+            {
+              address: "2NAm1LPPHQQ8AaLhXSYWrpApoCKcyjNJsjf",
+              amountSats: "20000",
+            },
+            {
+              address: "2Mx1h4VWiik8JNosa5nu4Gg96iPNQPJBWGa",
+              amountSats: "30000",
+            },
+          ];
+
       const result = await client.request({
         chainId: chain,
         topic: session.topic,
@@ -139,8 +158,7 @@ function App() {
           method: "btc_transfer",
           params: {
             pubkey: address, //XXX: This one is required
-            recipient,
-            amount: BigInt(6000), //the amount is in sats
+            recipients,
           },
         },
       });
