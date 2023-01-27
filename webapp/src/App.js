@@ -103,7 +103,7 @@ function App() {
         pairingTopic: undefined,
         requiredNamespaces: {
           bip: {
-            methods: ["btc_transfer"],
+            methods: ["bitcoin_btcTransfer"],
             chains: [chain],
             events: [],
           },
