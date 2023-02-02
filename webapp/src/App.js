@@ -30,7 +30,6 @@ const chains = [
   "bip122:000000000019d6689c085ae165831e93",
   "bip122:000000000933ea01ad0ee984209779ba",
 ];
-//const btcChains = ["bip122:000000000019d6689c085ae165831e93"];
 
 function App() {
   const [client, setClient] = useState(undefined);
@@ -102,7 +101,7 @@ function App() {
       const { uri, approval } = await client.connect({
         pairingTopic: undefined,
         requiredNamespaces: {
-          bip: {
+          bip122: {
             methods: ["bitcoin_btcTransfer"],
             chains: [chain],
             events: [],
@@ -127,7 +126,7 @@ function App() {
 
   const handleBtcTransfer = async () => {
     try {
-      const address = session.namespaces.bip.accounts[0].split(":")[2];
+      const address = session.namespaces.bip122.accounts[0].split(":")[2];
       const isMainnet = chain == chains[2];
       const recipients = isMainnet
         ? [
@@ -421,7 +420,7 @@ function App() {
         </div>
       )}
 
-      {session && session.namespaces.bip && (
+      {session && session.namespaces.bip122 && (
         <div className="box">
           <h3>Wallet connected!</h3>
           <div>
