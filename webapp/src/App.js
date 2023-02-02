@@ -155,7 +155,7 @@ function App() {
         chainId: chain,
         topic: session.topic,
         request: {
-          method: "btc_transfer",
+          method: "bitcoin_btcTransfer",
           params: {
             pubkey: address, //XXX: This one is required
             recipients,
@@ -164,7 +164,7 @@ function App() {
       });
 
       setResult({
-        method: "btc_transfer",
+        method: "bitcoin_btcTransfer",
         address,
         valid: true,
         result: result.txId,
