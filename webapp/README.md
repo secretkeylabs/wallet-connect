@@ -111,13 +111,25 @@ We do that by providing selected Network's `chainID` to Wallet Connect client.
     # Testnet
     "stacks:2147483648"
     ```
+ 
+   In case of Bitcoin, the chain IDS are as follow:
+
+    ```
+    # Mainnet
+    "bip122:000000000019d6689c085ae165831e93"
+
+    # Testnet
+    "bip122:000000000933ea01ad0ee984209779ba"
+    ```
 
     Add it to `src/App.js` after the imports:
 
     ```javascript
     const chains = [
-        'stacks:1',
-        'stacks:2147483648',
+         "stacks:1",
+         "stacks:2147483648",
+         "bip122:000000000019d6689c085ae165831e93",
+         "bip122:000000000933ea01ad0ee984209779ba",
     ];
     ```
 
@@ -234,6 +246,26 @@ We do that by providing selected Network's `chainID` to Wallet Connect client.
     });
     ```
 
+   For bitcoin, we have 1 example method
+    
+    - bitcoin_btcTransfer - BTC transfer with multiple recipients support
+
+   In order to connect with BTC chain, we pass in the above method
+
+   ```javascript
+    const { uri, approval } = await client.connect({
+        pairingTopic: undefined,
+        requiredNamespaces: {
+          bip122: {
+            methods: ["bitcoin_btcTransfer"],
+            chains: [chain],
+            events: [],
+          },
+        },
+      });
+    ```
+    
+
     We can use the returned `uri` directly, but it's easier (preferred) to use Wallet Connect QR Code modal to establish connection:
 
     Import the QRCodeModal:
@@ -267,36 +299,60 @@ We do that by providing selected Network's `chainID` to Wallet Connect client.
     ```javascript
     const handleConnect = async (chain) => {
         setChain(undefined);
-
-        const { uri, approval } = await client.connect({
+        if (chain.includes("stacks")) {
+          const { uri, approval } = await client.connect({
             pairingTopic: undefined,
             requiredNamespaces: {
-                "stacks":{
-                "methods":[
-                    'stacks_signMessage',
-                    'stacks_stxTransfer',
-                    'stacks_contractCall',
-                    'stacks_contractDeploy',
+              stacks: {
+                methods: [
+                  "stacks_signMessage",
+                  "stacks_stxTransfer",
+                  "stacks_contractCall",
+                  "stacks_contractDeploy",
                 ],
-                "chains":[
-                    chain
-                ],
-                "events":[]
-                }
+                chains: [chain],
+                events: [],
+              },
             },
-        });
+          });
 
-        if (uri) {
-        QRCodeModal.open(uri, () => {
-            console.log("QR Code Modal closed");
-        });
+          if (uri) {
+            QRCodeModal.open(uri, () => {
+              console.log("QR Code Modal closed");
+            });
+          }
+
+          const sessn = await approval();
+          setSession(sessn);
+          setChain(chain);
+          saveToLocalStorage("session", sessn);
+          saveToLocalStorage("chain", chain);
+          QRCodeModal.close();
+        } else {
+          const { uri, approval } = await client.connect({
+            pairingTopic: undefined,
+            requiredNamespaces: {
+              bip122: {
+                methods: ["bitcoin_btcTransfer"],
+                chains: [chain],
+                events: [],
+              },
+            },
+          });
+
+          if (uri) {
+            QRCodeModal.open(uri, () => {
+              console.log("QR Code Modal closed");
+            });
+          }
+
+          const sessn = await approval();
+          setSession(sessn);
+          setChain(chain);
+          saveToLocalStorage("session", sessn);
+          saveToLocalStorage("chain", chain);
+          QRCodeModal.close();
         }
-
-        const session = await approval();
-        setSession(session);
-        setChain(chain);
-
-        QRCodeModal.close();
     };
     ```
 
@@ -312,15 +368,48 @@ If you scan the QR code with the [example wallet](../wallet/README.md), it'll sh
 
     ```javascript
     {
-        session && (
-            <div className="box">
-                <h3>Wallet connected!</h3>
-                <div><button onClick={async () => await handleSignMessage()}>Sign Message</button></div>
-                <div><button onClick={async () => await handleTransferSTX()}>Transfer STX</button></div>
-                <div><button onClick={async () => await handleContractCall()}>Call Contract</button></div>
-                <div><button onClick={async () => await handleContractDeploy()}>Deploy Contract</button></div>
-            </div>
-        )
+        {session && session.namespaces.stacks && (
+        <div className="box">
+          <h3>Wallet connected!</h3>
+          <div>
+            <button onClick={async () => await handleSignMessage()}>
+              Sign Message
+            </button>
+          </div>
+          <div>
+            <button onClick={async () => await handleTransferSTX()}>
+              Transfer STX
+            </button>
+          </div>
+          <div>
+            <button onClick={async () => await handleContractCall()}>
+              Call Contract
+            </button>
+          </div>
+          <div>
+            <button onClick={async () => await handleContractDeploy()}>
+              Deploy Contract
+            </button>
+          </div>
+          <div>
+            <button onClick={async () => disconnect()}>Disconnect</button>
+          </div>
+        </div>
+      )}
+
+      {session && session.namespaces.bip122 && (
+        <div className="box">
+          <h3>Wallet connected!</h3>
+          <div>
+            <button onClick={async () => await handleBtcTransfer()}>
+              Transfer btc
+            </button>
+          </div>
+          <div>
+            <button onClick={async () => disconnect()}>Disconnect</button>
+          </div>
+        </div>
+      )}
     }
     ```
 
@@ -331,6 +420,7 @@ If you scan the QR code with the [example wallet](../wallet/README.md), it'll sh
     const handleContractDeploy = async () => {};
     const handleTransferSTX = async () => {};
     const handleContractCall = async () => {};
+    const handleBtcTransfer() = async () => {};
     ```
 
     We'll cover each handler individually building up complexity.
@@ -633,9 +723,65 @@ If you scan the QR code with the [example wallet](../wallet/README.md), it'll sh
     };
     ```
 
+9. BTC Transfer: 
+
+```javascript
+const handleBtcTransfer = async () => {
+    try {
+      const address = session.namespaces.bip122.accounts[0].split(":")[2];
+      const isMainnet = chain == chains[2];
+      // pass the recipients in an array 
+      const recipients = isMainnet
+        ? [
+            {
+              address: "3DP8pe2zJUcBezD35cLyZJGdbDwNYwBNtb",
+              amountSats: "6000",
+            },
+            {
+              address: "3Codr66EYyhkhWy1o2RLmrER7TaaHmtrZe",
+              amountSats: "7000",
+            },
+          ]
+        : [
+            {
+              address: "2NAm1LPPHQQ8AaLhXSYWrpApoCKcyjNJsjf",
+              amountSats: "6000",
+            },
+            {
+              address: "2Mx1h4VWiik8JNosa5nu4Gg96iPNQPJBWGa",
+              amountSats: "7000",
+            },
+           
+          ];
+
+      const result = await client.request({
+        chainId: chain,
+        topic: session.topic,
+        request: {
+          method: "bitcoin_btcTransfer",
+          params: {
+            pubkey: address, //XXX: This one is required
+            recipients,
+          },
+        },
+      });
+
+      setResult({
+        method: "bitcoin_btcTransfer",
+        address,
+        valid: true,
+        result: result.txId,
+      });
+    } catch (e) {
+      throw new Error(e);
+    }
+  };
+```
+
 That's it - you can now:
 - connect to your Stacks wallet through Wallet Connect
 - sign a message
 - transfer STX
 - deploy a contract
 - call a contract
+- transfer BTC
