@@ -124,30 +124,36 @@ function App() {
     }
   };
 
+  /**
+   * send a BTC transaction request with multiple recipients support
+   * recipients are passed as an array of objects containing address and amount in sats
+   */
   const handleBtcTransfer = async () => {
     try {
       const address = session.namespaces.bip122.accounts[0].split(":")[2];
       const isMainnet = chain == chains[2];
+      // pass the recipients in an array
       const recipients = isMainnet
         ? [
             {
               address: "3DP8pe2zJUcBezD35cLyZJGdbDwNYwBNtb",
-              amountSats: "20000",
+              amountSats: "6000",
             },
             {
               address: "3Codr66EYyhkhWy1o2RLmrER7TaaHmtrZe",
-              amountSats: "30000",
+              amountSats: "7000",
             },
           ]
         : [
             {
               address: "2NAm1LPPHQQ8AaLhXSYWrpApoCKcyjNJsjf",
-              amountSats: "20000",
+              amountSats: "6000",
             },
             {
               address: "2Mx1h4VWiik8JNosa5nu4Gg96iPNQPJBWGa",
-              amountSats: "30000",
+              amountSats: "7000",
             },
+           
           ];
 
       const result = await client.request({
