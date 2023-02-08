@@ -3,10 +3,10 @@
 ## Contract Function Call
 
 ### Method:
+
 `stacks_contractCall`
 
-Request a Stacks contract function call. 
-
+Request a Stacks contract function call.
 
 ### Parameters:
 
@@ -50,17 +50,16 @@ Custom nonce to set for the transaction. Default value is the next nonce for the
 
 Version of parameter format.
 
-
 ### Example:
 
 ```javascript
 const result = await client.request({
-  chainId: "stacks:1", 
+  chainId: "stacks:1",
   topic: session.topic, // Get this from the session approval
   request: {
     method: "stacks_contractCall",
     params: {
-      pubkey: address, 
+      pubkey: address,
       postConditions,
       contractAddress: "SP1H1733V5MZ3SZ9XRW9FKYGEZT0JDGEB8Y634C7R",
       contractName: "my_contract_name",
@@ -80,14 +79,13 @@ const result = await client.request({
 const txId = result.txId;
 ```
 
-
 ## STX Token Transfer
 
-### Method: 
+### Method:
+
 `stacks_stxTransfer`
 
 Request a transfer of STX tokens.
-
 
 ### Parameters:
 
@@ -119,7 +117,6 @@ The post condition mode to use. Defaults to `PostConditionMode.Allow`.
 
 Version of parameter format.
 
-
 ### Example:
 
 ```javascript
@@ -129,7 +126,7 @@ const result = await client.request({
   request: {
     method: "stacks_stxTransfer",
     params: {
-      pubkey: address, 
+      pubkey: address,
       recipient: "SP3F7GQ48JY59521DZEE6KABHBF4Q33PEYJ823ZXQ",
       amount: BigInt(1000),
     },
@@ -139,14 +136,13 @@ const result = await client.request({
 const txId = result.txId;
 ```
 
-
 ## Message Signing
 
-### Method: 
+### Method:
+
 `stacks_signMessage`
 
 Request signing of an arbitrary message.
-
 
 ### Parameters:
 
@@ -161,7 +157,6 @@ Message payload to be signed.
 **`version`** _optional_ - `string`
 
 Version of parameter format.
-
 
 ### Example:
 
@@ -188,14 +183,13 @@ const valid = verifyMessageSignatureRsv({
 });
 ```
 
-
 ## Contract Deploy
 
 ### Method:
+
 `stacks_contractDeploy`
 
 Request a Clarity contract deployment
-
 
 ### Parameters:
 
@@ -223,7 +217,6 @@ The post condition mode to use. Defaults to `PostConditionMode.Allow`.
 
 Version of parameter format.
 
-
 ### Example:
 
 ```javascript
@@ -231,7 +224,7 @@ const codeBody = `
   ;; hello-world
   (define-read-only (echo-number (val int)) (ok val))
   (define-public (say-hi) (ok "hello world"))
-`
+`;
 
 const result = await client.request({
   chainId: chain,
@@ -239,10 +232,46 @@ const result = await client.request({
   request: {
     method: "stacks_contractDeploy",
     params: {
-      pubkey: address, 
-      contractName: "my_contract_name_1", 
+      pubkey: address,
+      contractName: "my_contract_name_1",
       codeBody: codeBody,
       postConditionMode: PostConditionMode.Allow,
+    },
+  },
+});
+
+const txId = result.txId;
+```
+
+## BTC Transfer
+
+### Method:
+
+`bitcoin_btcTransfer`
+
+Request a bitcoin transfer transaction with multiple recipients support
+
+### Parameters:
+
+**`pubkey`** _required_ - `string`
+
+The stacks address of sender.
+
+**`recipients`** _required_ - `Array<Recipients>`
+
+Array of recipients containing BTC address and amount in sats
+
+### Example:
+
+```javascript
+const result = await client.request({
+  chainId: chain,
+  topic: session.topic,
+  request: {
+    method: "bitcoin_btcTransfer",
+    params: {
+      pubkey: address, //XXX: This one is required
+      recipients,
     },
   },
 });
