@@ -1,12 +1,12 @@
-# Stacks JSON RPC Methods
+# JSON API
 
 ## Contract Function Call
 
 ### Method:
+
 `stacks_contractCall`
 
-Request a Stacks contract function call. 
-
+Request a Stacks contract function call.
 
 ### Parameters:
 
@@ -50,6 +50,9 @@ Custom nonce to set for the transaction. Default value is the next nonce for the
 
 Version of parameter format.
 
+`sponsored` _optional_ - boolean\
+\
+to create a sponsored transaction
 
 ### Example:
 
@@ -73,6 +76,7 @@ const result = await client.request({
       ],
       postConditionMode: PostConditionMode.Deny,
       version: "1",
+      sponsored: true
     },
   },
 });
@@ -80,14 +84,13 @@ const result = await client.request({
 const txId = result.txId;
 ```
 
-
 ## STX Token Transfer
 
-### Method: 
+### Method:
+
 `stacks_stxTransfer`
 
 Request a transfer of STX tokens.
-
 
 ### Parameters:
 
@@ -119,7 +122,6 @@ The post condition mode to use. Defaults to `PostConditionMode.Allow`.
 
 Version of parameter format.
 
-
 ### Example:
 
 ```javascript
@@ -139,14 +141,13 @@ const result = await client.request({
 const txId = result.txId;
 ```
 
-
 ## Message Signing
 
-### Method: 
+### Method:
+
 `stacks_signMessage`
 
 Request signing of an arbitrary message.
-
 
 ### Parameters:
 
@@ -161,7 +162,6 @@ Message payload to be signed.
 **`version`** _optional_ - `string`
 
 Version of parameter format.
-
 
 ### Example:
 
@@ -188,14 +188,71 @@ const valid = verifyMessageSignatureRsv({
 });
 ```
 
+## Structured Message Signing
+
+### Method:
+
+`stacks_signMessage`\
+\
+Request signing of structured ClarityValue message
+
+### Parameters:
+
+**`pubkey`** _required_ - `string`
+
+The stacks address of sender.
+
+**`message`** _required_ - `Buffer`
+
+Message to be signed.\
+\
+`domain` _required_ - string
+
+domain of be signed
+
+**`version`** _optional_ - `string`
+
+Version of parameter format.
+
+### Example:
+
+```javascript
+const handleStructuredMessage = async () => {
+    const address = session.namespaces.stacks.accounts[0].split(":")[2];
+    const domain = "0c0000000308636861696e2d69640100000000000000000000000000000001046e616d650d00000011414c4558204232302050726f746f636f6c0776657273696f6e0d00000005302e302e31";
+    try {
+     const structuredMessage = serializeCV(structuredData);
+      const result = await client.request({
+        chainId: chain,
+        topic: session.topic,
+        request: {
+          method: "stacks_signMessage",
+          params: {
+            pubkey: address, //XXX: This one is required
+            message: structuredMessage,
+            domain
+          },
+        },
+      });
+
+      setResult({
+        method: "stacks_signMessage",
+        address,
+        result,
+      });
+    } catch (error) {
+      throw new Error(error);
+    }
+  };
+```
 
 ## Contract Deploy
 
 ### Method:
+
 `stacks_contractDeploy`
 
 Request a Clarity contract deployment
-
 
 ### Parameters:
 
@@ -222,7 +279,6 @@ The post condition mode to use. Defaults to `PostConditionMode.Allow`.
 **`version`** _optional_ - `string`
 
 Version of parameter format.
-
 
 ### Example:
 
