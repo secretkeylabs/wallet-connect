@@ -1,4 +1,4 @@
-‌# Summary​
+# Table of contents
 
 * [Introduction](INTRODUCTION.md)
 
@@ -13,4 +13,4 @@
 
 ## Reference
 
-* [JSON API](API_REFERENCE.md)
+* [JSON API](API\_REFERENCE.md)

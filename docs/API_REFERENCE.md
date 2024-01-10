@@ -1,4 +1,4 @@
-# Stacks JSON RPC Methods
+# JSON API
 
 ## Contract Function Call
 
@@ -50,6 +50,10 @@ Custom nonce to set for the transaction. Default value is the next nonce for the
 
 Version of parameter format.
 
+`sponsored` _optional_ - boolean
+
+Create a sponsored transaction
+
 ### Example:
 
 ```javascript
@@ -72,6 +76,7 @@ const result = await client.request({
       ],
       postConditionMode: PostConditionMode.Deny,
       version: "1",
+      sponsored: true
     },
   },
 });
@@ -181,6 +186,64 @@ const valid = verifyMessageSignatureRsv({
   publicKey,
   signature,
 });
+```
+
+## Structured Message Signing
+
+### Method:
+
+`stacks_signMessage`\
+\
+Request signing of structured ClarityValue message
+
+### Parameters:
+
+**`pubkey`** _required_ - `string`
+
+The stacks address of sender.
+
+**`message`** _required_ - `Buffer`
+
+Message to be signed.\
+\
+`domain` _required_ - string
+
+domain of be signed
+
+**`version`** _optional_ - `string`
+
+Version of parameter format.
+
+### Example:
+
+```javascript
+const handleStructuredMessage = async () => {
+    const address = session.namespaces.stacks.accounts[0].split(":")[2];
+    const domain = "0c0000000308636861696e2d69640100000000000000000000000000000001046e616d650d00000011414c4558204232302050726f746f636f6c0776657273696f6e0d00000005302e302e31";
+    try {
+     const structuredMessage = serializeCV(structuredData);
+      const result = await client.request({
+        chainId: chain,
+        topic: session.topic,
+        request: {
+          method: "stacks_signMessage",
+          params: {
+            pubkey: address, //XXX: This one is required
+            message: structuredMessage,
+            domain
+          },
+        },
+      });
+
+      setResult({
+        method: "stacks_signMessage",
+        address,
+        result,
+      });
+    } catch (error) {
+      throw new Error(error);
+    }
+  };
 ```
 
 ## Contract Deploy

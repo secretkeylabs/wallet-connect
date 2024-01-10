@@ -3,15 +3,29 @@ import { useState, useEffect } from "react";
 import Client from "@walletconnect/sign-client";
 import QRCodeModal from "@walletconnect/qrcode-modal";
 import {
+  makeStandardFungiblePostCondition,
+  bufferCVFromString,
+  contractPrincipalCV,
+  falseCV,
+  intCV,
+  listCV,
+  noneCV,
+  responseErrorCV,
+  responseOkCV,
+  someCV,
+  standardPrincipalCV,
+  stringAsciiCV,
+  stringUtf8CV,
+  trueCV,
+  tupleCV,
+  uintCV,
   PostConditionMode,
   FungibleConditionCode,
-  uintCV,
-  noneCV,
-  standardPrincipalCV,
   createAssetInfo,
-  makeStandardFungiblePostCondition,
+  serializeCV,
+  deserializeCV,
 } from "@stacks/transactions";
-import { verifyMessageSignatureRsv } from "@stacks/encryption";
+import { verifyMessageSignature, verifyMessageSignatureRsv } from "@stacks/encryption";
 import {
   clearLocalStorage,
   loadFromLocalStorage,
@@ -23,6 +37,54 @@ import {
 BigInt.prototype.toJSON = function () {
   return this.toString();
 };
+
+const ADDRESS = "SP2JXKMSH007NPYAQHKJPQMAQYAD90NQGTVJVQ02B";
+const structuredData = tupleCV({
+  a: intCV(-1),
+  b: uintCV(1),
+  c: bufferCVFromString("test"),
+  d: trueCV(),
+  e: someCV(trueCV()),
+  f: noneCV(),
+  g: standardPrincipalCV(ADDRESS),
+  h: contractPrincipalCV(ADDRESS, "test"),
+  i: responseOkCV(trueCV()),
+  j: responseErrorCV(falseCV()),
+  k: listCV([trueCV(), falseCV()]),
+  l: tupleCV({
+    a: trueCV(),
+    b: falseCV(),
+  }),
+  m: stringAsciiCV("hello world"),
+  another: tupleCV({
+    a: trueCV(),
+    b: falseCV(),
+    deep: tupleCV({
+      a: trueCV(),
+      b: falseCV(),
+      c: tupleCV({
+        deeper: tupleCV({
+          a: trueCV(),
+          b: falseCV(),
+          c: tupleCV({
+            deeper: tupleCV({
+              a: trueCV(),
+              b: falseCV(),
+              c: tupleCV({
+                deeper: tupleCV({
+                  a: trueCV(),
+                  b: falseCV(),
+                }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    }),
+  }),
+  n: stringUtf8CV("hello \u{1234}"),
+  o: listCV([]),
+});
 
 const chains = [
   "stacks:1",
@@ -172,7 +234,7 @@ function App() {
         method: "bitcoin_btcTransfer",
         address,
         valid: true,
-        result: result.txId,
+        result: result,
       });
     } catch (e) {
       throw new Error(e);
@@ -181,10 +243,8 @@ function App() {
 
   const handleSignMessage = async () => {
     const address = session.namespaces.stacks.accounts[0].split(":")[2];
-
     try {
       const message = "loremipsum";
-
       const result = await client.request({
         chainId: chain,
         topic: session.topic,
@@ -208,8 +268,36 @@ function App() {
       setResult({
         method: "stacks_signMessage",
         address,
-        valid: valid,
-        result: result,
+        valid,
+        result,
+      });
+    } catch (error) {
+      throw new Error(error);
+    }
+  };
+
+  const handleStructuredMessage = async () => {
+    const address = session.namespaces.stacks.accounts[0].split(":")[2];
+    const domain = "0c0000000308636861696e2d69640100000000000000000000000000000001046e616d650d00000011414c4558204232302050726f746f636f6c0776657273696f6e0d00000005302e302e31";
+    try {
+     const structuredMessage = serializeCV(structuredData);
+      const result = await client.request({
+        chainId: chain,
+        topic: session.topic,
+        request: {
+          method: "stacks_signMessage",
+          params: {
+            pubkey: address, //XXX: This one is required
+            message: structuredMessage,
+            domain
+          },
+        },
+      });
+
+      setResult({
+        method: "stacks_signMessage",
+        address,
+        result,
       });
     } catch (error) {
       throw new Error(error);
@@ -251,7 +339,7 @@ function App() {
         method: "stacks_contractDeploy",
         address,
         valid: true,
-        result: result.txId,
+        result: result,
       });
     } catch (error) {
       throw new Error(error);
@@ -283,7 +371,7 @@ function App() {
         method: "stacks_stxTransfer",
         address,
         valid: true,
-        result: result.txId,
+        result,
       });
     } catch (error) {
       throw new Error(error);
@@ -315,6 +403,7 @@ function App() {
         createAssetInfo(contractAddress, contractName, tokenName)
       )
     );
+    const sponsored = false;
 
     try {
       const result = await client.request({
@@ -336,6 +425,7 @@ function App() {
             ],
             postConditionMode: PostConditionMode.Deny,
             version: "1",
+            sponsored,
           },
         },
       });
@@ -344,7 +434,7 @@ function App() {
         method: "stacks_contractCall",
         address,
         valid: true,
-        result: result.txId,
+        result,
       });
     } catch (error) {
       throw new Error(error);
@@ -403,6 +493,9 @@ function App() {
           <div>
             <button onClick={async () => await handleSignMessage()}>
               Sign Message
+            </button>
+            <button onClick={async () => await handleStructuredMessage()}>
+              Sign Structured Message
             </button>
           </div>
           <div>
