@@ -50,20 +50,20 @@ Custom nonce to set for the transaction. Default value is the next nonce for the
 
 Version of parameter format.
 
-`sponsored` _optional_ - boolean\
-\
-to create a sponsored transaction
+`sponsored` _optional_ - boolean
+
+Create a sponsored transaction
 
 ### Example:
 
 ```javascript
 const result = await client.request({
-  chainId: "stacks:1", 
+  chainId: "stacks:1",
   topic: session.topic, // Get this from the session approval
   request: {
     method: "stacks_contractCall",
     params: {
-      pubkey: address, 
+      pubkey: address,
       postConditions,
       contractAddress: "SP1H1733V5MZ3SZ9XRW9FKYGEZT0JDGEB8Y634C7R",
       contractName: "my_contract_name",
@@ -131,7 +131,7 @@ const result = await client.request({
   request: {
     method: "stacks_stxTransfer",
     params: {
-      pubkey: address, 
+      pubkey: address,
       recipient: "SP3F7GQ48JY59521DZEE6KABHBF4Q33PEYJ823ZXQ",
       amount: BigInt(1000),
     },
@@ -287,7 +287,7 @@ const codeBody = `
   ;; hello-world
   (define-read-only (echo-number (val int)) (ok val))
   (define-public (say-hi) (ok "hello world"))
-`
+`;
 
 const result = await client.request({
   chainId: chain,
@@ -295,10 +295,46 @@ const result = await client.request({
   request: {
     method: "stacks_contractDeploy",
     params: {
-      pubkey: address, 
-      contractName: "my_contract_name_1", 
+      pubkey: address,
+      contractName: "my_contract_name_1",
       codeBody: codeBody,
       postConditionMode: PostConditionMode.Allow,
+    },
+  },
+});
+
+const txId = result.txId;
+```
+
+## BTC Transfer
+
+### Method:
+
+`bitcoin_btcTransfer`
+
+Request a bitcoin transfer transaction with multiple recipients support
+
+### Parameters:
+
+**`pubkey`** _required_ - `string`
+
+The stacks address of sender.
+
+**`recipients`** _required_ - `Array<Recipients>`
+
+Array of recipients containing BTC address and amount in sats
+
+### Example:
+
+```javascript
+const result = await client.request({
+  chainId: chain,
+  topic: session.topic,
+  request: {
+    method: "bitcoin_btcTransfer",
+    params: {
+      pubkey: address, //XXX: This one is required
+      recipients,
     },
   },
 });
